@@ -1,0 +1,9 @@
+-r transform/requirements.txt
+pytest
+pytest-cov
+pytest-mock
+black
+ipdb
+boto3
+fastavro
+awswrangler

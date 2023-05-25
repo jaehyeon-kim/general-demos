@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sam-for-data-professionals
+
+  Sample SAM Template for sam-for-data-professionals
+
+Globals:
+  Function:
+    MemorySize: 256
+    Timeout: 20
+
+Resources:
+  FastAvro:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: fastavro-layer-py3
+      ContentUri: fastavro/
+      CompatibleRuntimes:
+        - python3.7
+        - python3.8
+        - python3.9
+    Metadata:
+      BuildMethod: python3.8
+  TransformFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: transform/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - !Ref FastAvro
+        - arn:aws:lambda:ap-southeast-2:336392948345:layer:AWSDataWrangler-Python38:8
+      Policies:
+        - S3ReadPolicy:
+            BucketName: sam-for-data-professionals-cevo
+        - S3WritePolicy:
+            BucketName: sam-for-data-professionals-cevo
+      Events:
+        BucketEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref SourceBucket
+            Events:
+              - "s3:ObjectCreated:*"
+  SourceBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: sam-for-data-professionals-cevo
+
+Outputs:
+  FastAvro:
+    Description: "ARN of fastavro-layer-py3"
+    Value: !Ref FastAvro
+  TransformFunction:
+    Description: "Transform Lambda Function ARN"
+    Value: !GetAtt TransformFunction.Arn
