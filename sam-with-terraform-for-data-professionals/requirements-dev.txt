@@ -1,0 +1,6 @@
+fastavro
+awswrangler
+black
+pytest
+pytest-cov
+boto3

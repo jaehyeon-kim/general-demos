@@ -1,5 +1,17 @@
 .local
 
+## sam
+.aws-sam*
+builds
+
+## terraform
+.infra
+.terraform
+.terraform-plan*
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
+terraform.tfsta*
+
 # Created by https://www.toptal.com/developers/gitignore/api/osx,linux,python,windows,pycharm,visualstudiocode,sam
 # Edit at https://www.toptal.com/developers/gitignore?templates=osx,linux,python,windows,pycharm,visualstudiocode,sam
 
