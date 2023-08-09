@@ -1,4 +1,5 @@
-.local
+.ignore
+.external
 
 ## sam
 .aws-sam*
