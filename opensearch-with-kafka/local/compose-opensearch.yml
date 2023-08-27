@@ -18,7 +18,7 @@ services:
         soft: 65536
         hard: 65536
     volumes:
-      - opensearch-data1:/usr/share/opensearch/data
+      - opensearch-node1-data:/usr/share/opensearch/data
     ports:
       - 9200:9200
       - 9600:9600
@@ -42,7 +42,7 @@ services:
         soft: 65536
         hard: 65536
     volumes:
-      - opensearch-data2:/usr/share/opensearch/data
+      - opensearch-node1-data:/usr/share/opensearch/data
     networks:
       - service-net
   opensearch-dashboards:
@@ -58,8 +58,9 @@ services:
       - service-net
 
 volumes:
-  opensearch-data1:
-  opensearch-data2:
+  opensearch-node1-data:
+  opensearch-node2-data:
 
 networks:
   service-net:
+    name: service-net
