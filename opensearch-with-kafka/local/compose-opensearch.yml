@@ -57,10 +57,14 @@ services:
     networks:
       - service-net
 
-volumes:
-  opensearch-node1-data:
-  opensearch-node2-data:
-
 networks:
   service-net:
     name: service-net
+
+volumes:
+  opensearch-node1-data:
+    driver: local
+    name: opensearch-node1-data
+  opensearch-node2-data:
+    driver: local
+    name: opensearch-node2-data

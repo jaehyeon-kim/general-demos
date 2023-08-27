@@ -99,6 +99,11 @@ networks:
 
 volumes:
   zookeeper-data:
+    driver: local
+    name: zookeeper-data
   kafka-0-data:
+    driver: local
+    name: kafka-0-data
   kafka-1-data:
-  kafka-2-data:
+    driver: local
+    name: kafka-1-data
