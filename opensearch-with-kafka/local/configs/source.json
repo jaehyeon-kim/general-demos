@@ -1,0 +1,25 @@
+{
+  "name": "ad-tech-source",
+  "config": {
+    "connector.class": "com.amazonaws.mskdatagen.GeneratorSourceConnector",
+    "tasks.max": "2",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "key.converter.schemas.enable": false,
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": false,
+
+    "genkp.impressions.with": "#{Code.isbn10}",
+    "genv.impressions.bid_id.with": "#{Code.isbn10}",
+    "genv.impressions.campaign_id.with": "#{Code.isbn10}",
+    "genv.impressions.creative_details.with": "#{Color.name}",
+    "genv.impressions.country_code.with": "#{Address.countryCode}",
+
+    "genkp.clicks.with": "#{Code.isbn10}",
+    "genv.clicks.correlation_id.sometimes.matching": "impressions.value.bid_id",
+    "genv.clicks.correlation_id.sometimes.with": "NA",
+    "genv.clicks.tracker.with": "#{Lorem.characters '15'}",
+
+    "global.throttle.ms": "500",
+    "global.history.records.max": "1000"
+  }
+}

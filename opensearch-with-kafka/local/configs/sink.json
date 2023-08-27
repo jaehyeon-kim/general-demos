@@ -1,0 +1,35 @@
+{
+  "name": "ad-tech-sink-os",
+  "config": {
+    "connector.class": "io.aiven.kafka.connect.opensearch.OpensearchSinkConnector",
+    "tasks.max": "2",
+    "topics": "impressions,clicks",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "key.converter.schemas.enable": false,
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": false,
+
+    "connection.url": "https://opensearch-node1:9200,https://opensearch-node2:9200",
+    "connection.username": "admin",
+    "connection.password": "admin",
+    "schema.ignore": true,
+    "key.ignore": true,
+    "type.name": "_doc",
+    "behavior.on.malformed.documents": "fail",
+    "behavior.on.null.values": "ignore",
+    "behavior.on.version.conflict": "ignore",
+
+    "errors.deadletterqueue.topic.name": "ad-tech-dl",
+    "errors.tolerance": "all",
+    "errors.deadletterqueue.context.headers.enable": true,
+    "errors.deadletterqueue.topic.replication.factor": 1,
+
+    "transforms": "insertTS,formatTS",
+    "transforms.insertTS.type": "org.apache.kafka.connect.transforms.InsertField$Value",
+    "transforms.insertTS.timestamp.field": "created_at",
+    "transforms.formatTS.type": "org.apache.kafka.connect.transforms.TimestampConverter$Value",
+    "transforms.formatTS.format": "yyyy-MM-dd HH:mm:ss",
+    "transforms.formatTS.field": "created_at",
+    "transforms.formatTS.target.type": "string"
+  }
+}

@@ -1,5 +1,7 @@
 .ignore
 .external
+connectors
+ecommerce*.json
 
 ## sam
 .aws-sam*

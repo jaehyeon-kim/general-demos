@@ -1,0 +1,109 @@
+version: "3.5"
+
+services:
+  zookeeper:
+    image: bitnami/zookeeper:3.5
+    container_name: zookeeper
+    ports:
+      - "2181"
+    networks:
+      - service-net
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    volumes:
+      - zookeeper-data:/bitnami/zookeeper
+  kafka-0:
+    image: bitnami/kafka:2.8.1
+    container_name: kafka-0
+    expose:
+      - 9092
+    ports:
+      - "29092:29092"
+    networks:
+      - service-net
+    environment:
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_BROKER_ID=0
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=INTERNAL://:9092,EXTERNAL://:29092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-0:9092,EXTERNAL://localhost:29092
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_CFG_NUM_PARTITIONS=2
+      - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=2
+    volumes:
+      - kafka-0-data:/bitnami/kafka
+    depends_on:
+      - zookeeper
+  kafka-1:
+    image: bitnami/kafka:2.8.1
+    container_name: kafka-1
+    expose:
+      - 9092
+    ports:
+      - "29093:29093"
+    networks:
+      - service-net
+    environment:
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_BROKER_ID=1
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=INTERNAL://:9092,EXTERNAL://:29093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-1:9092,EXTERNAL://localhost:29093
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_CFG_NUM_PARTITIONS=2
+      - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=2
+    volumes:
+      - kafka-1-data:/bitnami/kafka
+    depends_on:
+      - zookeeper
+  kafka-connect:
+    image: bitnami/kafka:2.8.1
+    container_name: connect
+    command: >
+      /opt/bitnami/kafka/bin/connect-distributed.sh
+      /opt/bitnami/kafka/config/connect-distributed.properties
+    ports:
+      - "8083:8083"
+    networks:
+      - service-net
+    volumes:
+      - "./configs/connect-distributed.properties:/opt/bitnami/kafka/config/connect-distributed.properties"
+      - "./connectors/opensearch-connector:/opt/connectors/opensearch-connector"
+      - "./connectors/msk-datagen:/opt/connectors/msk-datagen"
+    depends_on:
+      - zookeeper
+      - kafka-0
+      - kafka-1
+  kpow:
+    image: factorhouse/kpow-ce:91.2.1
+    container_name: kpow
+    ports:
+      - "3000:3000"
+    networks:
+      - service-net
+    environment:
+      BOOTSTRAP: kafka-0:9092,kafka-1:9092
+      CONNECT_REST_URL: http://kafka-connect:8083
+    depends_on:
+      - zookeeper
+      - kafka-0
+      - kafka-1
+      - kafka-connect
+
+networks:
+  service-net:
+    external: true
+    name: service-net
+
+volumes:
+  zookeeper-data:
+    driver: local
+    name: zookeeper-data
+  kafka-0-data:
+    driver: local
+    name: kafka-0-data
+  kafka-1-data:
+    driver: local
+    name: kafka-1-data
