@@ -71,12 +71,17 @@ output "msk_bootstrap_brokers_sasl_iam" {
 # MSK Connect
 output "sink_connector_arn" {
   description = "Amazon Resource Name (ARN) of the OpenSearch sink connector"
-  value       = aws_mskconnect_connector.opensearch_sink.arn
+  value = {
+    for k, v in aws_mskconnect_connector.opensearch_sink : k => v.arn
+  }
+  # value       = var.msk_to_create_connect ? aws_mskconnect_connector.opensearch_sink[0].arn : ""
 }
 
 output "sink_connector_version" {
   description = "Current version of the OpenSearch sink connector"
-  value       = aws_mskconnect_connector.opensearch_sink.version
+  value = {
+    for k, v in aws_mskconnect_connector.opensearch_sink : k => v.version
+  }
 }
 
 output "source_connector_arn" {
@@ -87,4 +92,20 @@ output "source_connector_arn" {
 output "source_connector_version" {
   description = "Current version of the MSK Data Generator source connector"
   value       = aws_mskconnect_connector.msk_data_generator.version
+}
+
+# OpenSearch
+output "opensearch_domain_arn" {
+  description = "OpenSearch domain ARN"
+  value       = aws_opensearch_domain.opensearch.arn
+}
+
+output "opensearch_domain_endpoint" {
+  description = "OpenSearch domain endpoint"
+  value       = aws_opensearch_domain.opensearch.endpoint
+}
+
+output "opensearch_domain_dashboard_endpoint" {
+  description = "OpenSearch domain dashboard endpoint"
+  value       = aws_opensearch_domain.opensearch.dashboard_endpoint
 }

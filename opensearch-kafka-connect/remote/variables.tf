@@ -4,16 +4,16 @@ variable "vpn_to_create" {
   default     = true
 }
 
-variable "vpn_to_use_spot" {
-  description = "Flag to indicate whether to use a spot instance for VPN"
-  type        = bool
-  default     = false
-}
-
 variable "vpn_to_limit_vpn_ingress" {
   description = "Flag to indicate whether to limit ingress from the current machine's IP address"
   type        = bool
   default     = true
+}
+
+variable "to_create_sink_connector" {
+  description = "Flag to indicate whether to create OpenSearch sink connector"
+  type        = bool
+  default     = false
 }
 
 locals {
@@ -33,7 +33,7 @@ locals {
 
   vpn = {
     to_create    = var.vpn_to_create
-    to_use_spot  = var.vpn_to_use_spot
+    to_use_spot  = false
     ingress_cidr = var.vpn_to_limit_vpn_ingress ? "${data.http.local_ip_address.response_body}/32" : "0.0.0.0/0"
     spot_override = [
       { instance_type : "t3.nano" },
@@ -49,6 +49,12 @@ locals {
     number_of_broker_nodes     = 2
     num_partitions             = 2
     default_replication_factor = 2
+  }
+
+  opensearch = {
+    engine_version = "2.7"
+    instance_type  = "m5.large.search"
+    instance_count = 2
   }
 
   tags = {

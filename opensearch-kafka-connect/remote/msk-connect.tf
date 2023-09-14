@@ -1,7 +1,7 @@
-## connectors
-# camel dynamodb sink
+## sink connector resources
 resource "aws_mskconnect_connector" "opensearch_sink" {
-  name = "${local.name}-ad-tech-sink"
+  count = var.to_create_sink_connector ? 1 : 0
+  name  = "${local.name}-ad-tech-sink"
 
   kafkaconnect_version = "2.7.1"
 
@@ -22,9 +22,7 @@ resource "aws_mskconnect_connector" "opensearch_sink" {
     "value.converter"                = "org.apache.kafka.connect.json.JsonConverter",
     "value.converter.schemas.enable" = false,
     # opensearch sink configuration
-    "connection.url"                  = "",
-    "connection.username"             = "",
-    "connection.password"             = "",
+    "connection.url"                  = "https://${aws_opensearch_domain.opensearch.endpoint}",
     "schema.ignore"                   = true,
     "key.ignore"                      = true,
     "type.name"                       = "_doc",
@@ -121,7 +119,7 @@ resource "aws_cloudwatch_log_group" "opensearch_sink" {
   tags = local.tags
 }
 
-# msk data generator
+## source connector resources
 resource "aws_mskconnect_connector" "msk_data_generator" {
   name = "${local.name}-ad-tech-source"
 
@@ -214,9 +212,9 @@ resource "aws_mskconnect_custom_plugin" "msk_data_generator" {
 resource "aws_s3_object" "msk_data_generator" {
   bucket = aws_s3_bucket.default_bucket.id
   key    = "plugins/msk-data-generator.jar"
-  source = "connectors/msk-data-generator.jar"
+  source = "connectors/msk-datagen/msk-data-generator.jar"
 
-  etag = filemd5("connectors/msk-data-generator.jar")
+  etag = filemd5("connectors/msk-datagen/msk-data-generator.jar")
 }
 
 resource "aws_cloudwatch_log_group" "msk_data_generator" {
