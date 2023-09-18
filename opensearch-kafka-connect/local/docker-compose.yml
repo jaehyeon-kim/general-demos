@@ -30,32 +30,9 @@ services:
       - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-0:9092,EXTERNAL://localhost:29092
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
       - KAFKA_CFG_NUM_PARTITIONS=2
-      - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=2
+      - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
     volumes:
       - kafka-0-data:/bitnami/kafka
-    depends_on:
-      - zookeeper
-  kafka-1:
-    image: bitnami/kafka:2.8.1
-    container_name: kafka-1
-    expose:
-      - 9092
-    ports:
-      - "29093:29093"
-    networks:
-      - service-net
-    environment:
-      - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_CFG_BROKER_ID=1
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-      - KAFKA_CFG_LISTENERS=INTERNAL://:9092,EXTERNAL://:29093
-      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-1:9092,EXTERNAL://localhost:29093
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
-      - KAFKA_CFG_NUM_PARTITIONS=2
-      - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=2
-    volumes:
-      - kafka-1-data:/bitnami/kafka
     depends_on:
       - zookeeper
   kafka-connect:
@@ -75,26 +52,81 @@ services:
     depends_on:
       - zookeeper
       - kafka-0
-      - kafka-1
   kpow:
-    image: factorhouse/kpow-ce:91.2.1
+    image: factorhouse/kpow-ce:91.5.1
     container_name: kpow
     ports:
       - "3000:3000"
     networks:
       - service-net
     environment:
-      BOOTSTRAP: kafka-0:9092,kafka-1:9092
+      BOOTSTRAP: kafka-0:9092
       CONNECT_REST_URL: http://kafka-connect:8083
+    env_file: # https://kpow.io/get-started/#individual
+      - ./kpow.env
     depends_on:
       - zookeeper
       - kafka-0
-      - kafka-1
       - kafka-connect
+  opensearch-node1:
+    image: opensearchproject/opensearch:2.9.0
+    container_name: opensearch-node1
+    environment:
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-node1
+      - discovery.seed_hosts=opensearch-node1,opensearch-node2
+      - cluster.initial_cluster_manager_nodes=opensearch-node1,opensearch-node2
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-node1-data:/usr/share/opensearch/data
+    ports:
+      - 9200:9200
+      - 9600:9600
+    networks:
+      - service-net
+  opensearch-node2:
+    image: opensearchproject/opensearch:2.9.0
+    container_name: opensearch-node2
+    environment:
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-node2
+      - discovery.seed_hosts=opensearch-node1,opensearch-node2
+      - cluster.initial_cluster_manager_nodes=opensearch-node1,opensearch-node2
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-node1-data:/usr/share/opensearch/data
+    networks:
+      - service-net
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.9.0
+    container_name: opensearch-dashboards
+    ports:
+      - 5601:5601
+    expose:
+      - "5601"
+    environment:
+      OPENSEARCH_HOSTS: '["https://opensearch-node1:9200","https://opensearch-node2:9200"]'
+    networks:
+      - service-net
 
 networks:
   service-net:
-    external: true
     name: service-net
 
 volumes:
@@ -104,6 +136,9 @@ volumes:
   kafka-0-data:
     driver: local
     name: kafka-0-data
-  kafka-1-data:
+  opensearch-node1-data:
     driver: local
-    name: kafka-1-data
+    name: opensearch-node1-data
+  opensearch-node2-data:
+    driver: local
+    name: opensearch-node2-data

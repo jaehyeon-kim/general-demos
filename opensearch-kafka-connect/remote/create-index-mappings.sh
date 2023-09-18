@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 OPENSEARCH_ENDPOINT=$(terraform output -json | jq -r '.opensearch_domain_endpoint.value')
 echo "OpenSearch endpoint - $OPENSEARCH_ENDPOINT ..."
 

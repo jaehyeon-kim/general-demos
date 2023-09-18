@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 echo "Create impressions index and field mapping"
 curl -X PUT "https://localhost:9200/impressions" -ku admin:admin -H 'Content-Type: application/json' -d'
 {

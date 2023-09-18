@@ -2,6 +2,7 @@
 .external
 connectors
 ecommerce*.json
+kpow.env
 
 ## sam
 .aws-sam*

@@ -1,5 +1,5 @@
 {
-  "name": "ad-tech-sink-os",
+  "name": "ad-tech-sink",
   "config": {
     "connector.class": "io.aiven.kafka.connect.opensearch.OpensearchSinkConnector",
     "tasks.max": "2",
