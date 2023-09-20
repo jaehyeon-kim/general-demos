@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
+OPENSEARCH_ENDPOINT=$(terraform output -json | jq -r '.opensearch_domain_endpoint.value')
+echo "OpenSearch endpoint - $OPENSEARCH_ENDPOINT ..."
+
 echo "Create impressions index and field mapping"
-curl -X PUT "https://localhost:9200/impressions" -ku admin:admin -H 'Content-Type: application/json' -d'
+curl -X PUT "https://$OPENSEARCH_ENDPOINT/impressions" -H 'Content-Type: application/json' -d'
 {
   "mappings": {
     "properties": {
@@ -26,7 +29,7 @@ curl -X PUT "https://localhost:9200/impressions" -ku admin:admin -H 'Content-Typ
 
 echo
 echo "Create clicks index and field mapping"
-curl -X PUT "https://localhost:9200/clicks" -ku admin:admin -H 'Content-Type: application/json' -d'
+curl -X PUT "https://$OPENSEARCH_ENDPOINT/clicks" -H 'Content-Type: application/json' -d'
 {
   "mappings": {
     "properties": {
