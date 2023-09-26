@@ -1,6 +1,6 @@
 ## sink connector resources
 resource "aws_mskconnect_connector" "opensearch_sink" {
-  count = var.to_create_sink_connector ? 1 : 0
+  count = var.to_create_connector ? 1 : 0
   name  = "${local.name}-ad-tech-sink"
 
   kafkaconnect_version = "2.7.1"
@@ -121,7 +121,8 @@ resource "aws_cloudwatch_log_group" "opensearch_sink" {
 
 ## source connector resources
 resource "aws_mskconnect_connector" "msk_data_generator" {
-  name = "${local.name}-ad-tech-source"
+  count = var.to_create_connector ? 1 : 0
+  name  = "${local.name}-ad-tech-source"
 
   kafkaconnect_version = "2.7.1"
 

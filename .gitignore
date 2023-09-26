@@ -3,6 +3,7 @@
 connectors
 ecommerce*.json
 kpow.env
+*.pem
 
 ## sam
 .aws-sam*

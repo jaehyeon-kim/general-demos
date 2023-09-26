@@ -10,8 +10,8 @@ variable "vpn_to_limit_vpn_ingress" {
   default     = true
 }
 
-variable "to_create_sink_connector" {
-  description = "Flag to indicate whether to create OpenSearch sink connector"
+variable "to_create_connector" {
+  description = "Flag to indicate whether to create MSK connectors"
   type        = bool
   default     = false
 }

@@ -74,7 +74,6 @@ output "sink_connector_arn" {
   value = {
     for k, v in aws_mskconnect_connector.opensearch_sink : k => v.arn
   }
-  # value       = var.msk_to_create_connect ? aws_mskconnect_connector.opensearch_sink[0].arn : ""
 }
 
 output "sink_connector_version" {
@@ -86,12 +85,16 @@ output "sink_connector_version" {
 
 output "source_connector_arn" {
   description = "Amazon Resource Name (ARN) of the MSK Data Generator source connector"
-  value       = aws_mskconnect_connector.msk_data_generator.arn
+  value = {
+    for k, v in aws_mskconnect_connector.msk_data_generator : k => v.arn
+  }
 }
 
 output "source_connector_version" {
   description = "Current version of the MSK Data Generator source connector"
-  value       = aws_mskconnect_connector.msk_data_generator.version
+  value = {
+    for k, v in aws_mskconnect_connector.msk_data_generator : k => v.version
+  }
 }
 
 # OpenSearch

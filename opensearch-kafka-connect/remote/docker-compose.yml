@@ -2,7 +2,7 @@ version: "3"
 
 services:
   kpow:
-    image: factorhouse/kpow-ce:91.2.1
+    image: factorhouse/kpow-ce:91.5.1
     container_name: kpow
     ports:
       - "3000:3000"
@@ -18,6 +18,8 @@ services:
       SASL_JAAS_CONFIG: software.amazon.msk.auth.iam.IAMLoginModule required;
       SASL_CLIENT_CALLBACK_HANDLER_CLASS: software.amazon.msk.auth.iam.IAMClientCallbackHandler
       CONNECT_AWS_REGION: ap-southeast-2
+    env_file: # https://kpow.io/get-started/#individual
+      - ./kpow.env
 
 networks:
   kafkanet:
