@@ -1,0 +1,9 @@
+# https://docs.dapr.io/developing-applications/local-development/multi-app-dapr-run/multi-app-template/
+version: 1
+common:
+  resourcesPath: /components/
+apps:
+  - appID: checkout
+    appDirPath: /app
+    configFilePath: /config/config.yaml
+    command: ["python", "app.py"]

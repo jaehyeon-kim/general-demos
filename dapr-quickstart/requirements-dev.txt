@@ -1,0 +1,5 @@
+-r ./checkout/requirements.txt
+-r ./order-producer/requirements.txt
+black
+pytest
+pytest-cov

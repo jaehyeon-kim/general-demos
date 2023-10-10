@@ -1,0 +1,79 @@
+version: "3.5"
+
+services:
+  checkout:
+    build: ./checkout
+    container_name: checkout
+    expose:
+      - 50001 # Dapr instances communicate over gRPC so we need to expose the gRPC port
+    networks:
+      - appnet
+    depends_on:
+      - placement
+    # restart: always
+  checkout-sidecar:
+    image: daprio/dapr:1.11.0
+    container_name: checkout-sidecar
+    command: [
+        "./daprd",
+        "--app-id",
+        "checkout",
+        "--placement-host-address",
+        "placement:50006",
+        "--resources-path",
+        "/components",
+        # "--config",
+        # "/config/config.yaml",
+      ]
+    volumes:
+      - "./components/:/components"
+      # - "./config.yaml:/config/config.yaml"
+    depends_on:
+      - checkout
+    network_mode: "service:checkout" # Attach the nodeapp-dapr service to the nodeapp network namespace
+  porcessor:
+    build: ./order-porcessor
+    container_name: porcessor
+    expose:
+      - 8000
+      - 50001
+    networks:
+      - appnet
+    depends_on:
+      - placement
+    # restart: always
+  porcessor-sidecar:
+    image: daprio/dapr:1.11.0
+    container_name: porcessor-sidecar
+    command: [
+        "./daprd",
+        "--app-id",
+        "--app-port",
+        "8000",
+        "porcessor",
+        "--placement-host-address",
+        "placement:50006",
+        "--resources-path",
+        "/components",
+        # "--config",
+        # "/config/config.yaml",
+      ]
+    volumes:
+      - "./components/:/components"
+      # - "./config.yaml:/config/config.yaml"
+    depends_on:
+      - porcessor
+    network_mode: "service:porcessor"
+  placement:
+    image: daprio/dapr:1.11.0
+    container_name: placement
+    command: ["./placement", "--port", "50005"]
+    expose:
+      - 50005
+    networks:
+      - appnet
+
+networks:
+  appnet:
+    external: true
+    name: app-network

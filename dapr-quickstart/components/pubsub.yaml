@@ -1,0 +1,22 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: orderpubsub
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    - name: brokers
+      value: "kafka-0:9092"
+    - name: consumerGroup
+      value: "order-processing"
+    - name: clientID
+      value: "dapr-order-processing"
+    - name: authType
+      value: "none"
+    - name: maxMessageBytes
+      value: 1024
+    - name: consumeRetryInterval
+      value: 200ms
+    - name: version
+      value: 2.8.1

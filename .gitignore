@@ -4,6 +4,7 @@ connectors
 ecommerce*.json
 kpow.env
 *.pem
+**/.dapr/bin
 
 ## sam
 .aws-sam*
