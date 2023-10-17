@@ -1,0 +1,12 @@
+Install Anaconda3-2019.07-Windows-x86_64.exe
+Run Anaconda
+In the anaconda prompt
+conda create -n connexion python==3.7.6
+conda activate connexion
+pip install connexion[swagger-ui] flask_injector
+pip freeze > requirements.txt
+
+========= developed Environment ========
+Windows10 64bit version 1909(build 18363.657)
+PyCharm professional 2019.3
+Python 3.7.6
