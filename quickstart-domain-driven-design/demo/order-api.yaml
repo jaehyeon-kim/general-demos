@@ -1,0 +1,204 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: eCommerce System
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:9000/v1.0
+
+paths:
+  /orders:
+    post:
+      summary: Create Orders
+      operationId: orders.post
+      tags:
+        - order
+      requestBody:
+        description: Order to add to the system
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaceOrderRequest"
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaceOrderResponse"
+        '201':
+          description: Null response
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /orders/history/{CustomerId}:
+    get:
+      summary: Info for a specific orders
+      operationId: orders.getOrders
+      tags:
+        - order
+      parameters:
+        - name: CustomerId
+          in: path
+          required: true
+          description: The id of the customer to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Orders"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /orders/tracking/{orderId}:
+    get:
+      summary: Info for a specific transitLocation
+      operationId: orders.getTransitLocations
+      tags:
+        - order
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          description: The id of the customer to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransitLocations"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    Address:
+      type: object
+      properties:
+        AddressLine1:
+          type: string
+        AddressLine2:
+          type: string
+        Country:
+          type: string
+    Product:
+      type: object
+      properties:
+        Stockcode:
+          type: integer
+          format: int64
+        ProductImageUrl:
+          type: string
+        VolumetricWeight:
+          type: number
+          #format: float
+    OrderLine:
+      type: object
+      properties:
+        Product:
+          $ref: '#/components/schemas/Product'
+        Quantity:
+          type: integer
+          format: int64
+        UnitPrice:
+          type: number
+          #format: float
+    OrderLines:
+      type: array
+      items:
+        $ref: "#/components/schemas/OrderLine"
+    TransitLocation:
+      properties:
+        Name:
+          type: string
+        Date:
+          type: string
+          format: date-time
+        Address:
+          $ref: "#/components/schemas/Address"
+    TransitLocations:
+      type: array
+      items:
+        $ref: "#/components/schemas/TransitLocation"
+    Order:
+      type: object
+      properties:
+        OrderId:
+          type: integer
+          format: int64
+        OrderLines:
+          $ref: "#/components/schemas/OrderLines"
+        CustomerId:
+          type: integer
+          format: int64
+        TotalCost:
+          type: number
+          #format: float
+        ShippingCost:
+          type: number
+          #format: float
+        BillingAddress:
+          $ref: "#/components/schemas/Address"
+        ShippingAddress:
+          $ref: "#/components/schemas/Address"
+        PromotionCode:
+          type: string
+        DatePlaced:
+          type: string
+          format: date-time
+        TransitLocations:
+          $ref: "#/components/schemas/TransitLocations"
+    Orders:
+      type: array
+      items:
+        $ref: "#/components/schemas/Order"
+    PlaceOrderResponse:
+      properties:
+        IsSuccess:
+          type: string
+          format: boolean
+        ErrorReason:
+          type: string
+        OrderId:
+          type: integer
+          format: int64
+    PlaceOrderRequest:
+      type: object
+      properties:
+        Order:
+          $ref: "#/components/schemas/Order"
+        ExpectedTotalCost:
+          type: number
+          #format: float
+        ExpectedShippingCost:
+          type: number
+#          #format: float
+    Error:
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+
+
