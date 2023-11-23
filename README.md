@@ -1,4 +1,4 @@
-# SAM for Data Professionals
+# Demo Projects
 
 [Serverless Application Model (SAM) for Data Professionals](https://jaehyeon.me/blog/2022-07-18-sam-for-data-professionals/)
 
