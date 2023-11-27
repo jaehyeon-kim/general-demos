@@ -18,6 +18,8 @@ services:
       - BOOTSTRAP_SERVERS=kafka-0:9092
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-not_set}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-not_set}
+      - AWS_REGION=${AWS_REGION:-not_set}
+      - HADOOP_CONF_DIR=/glue/confs/hadoop/conf
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
@@ -45,6 +47,8 @@ services:
       - BOOTSTRAP_SERVERS=kafka-0:9092
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-not_set}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-not_set}
+      - AWS_REGION=${AWS_REGION:-not_set}
+      - HADOOP_CONF_DIR=/glue/confs/hadoop/conf
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
@@ -57,42 +61,46 @@ services:
         taskmanager.memory.process.size: 1728m
     depends_on:
       - jobmanager
-  spark:
-    image: emr-6.15.0-spark:local
-    container_name: spark
-    command: driver
-    ports:
-      - "7070:8080"
-    networks:
-      - appnet
-    environment:
-      - BOOTSTRAP_SERVERS=kafka-0:9092
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-not_set}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-not_set}
-      - SPARK_MASTER_HOST=spark
-      - SPARK_LOG_DIR=/tmp
-    volumes:
-      - ./dockers/spark/entrypoint.sh:/usr/bin/entrypoint.sh
-  spark-worker:
-    image: emr-6.15.0-spark:local
-    container_name: spark-worker
-    command: executor
-    ports:
-      - "7071:8081"
-    networks:
-      - appnet
-    environment:
-      - BOOTSTRAP_SERVERS=kafka-0:9092
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-not_set}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-not_set}
-      - SPARK_DRIVER_URL=spark://spark:7077
-      - SPARK_EXECUTOR_CORES=2
-      - SPARK_EXECUTOR_MEMORY=2G
-      - SPARK_LOG_DIR=/tmp
-    volumes:
-      - ./dockers/spark/entrypoint.sh:/usr/bin/entrypoint.sh
-    depends_on:
-      - spark
+  # spark:
+  #   image: emr-6.15.0-spark:local
+  #   container_name: spark
+  #   command: driver
+  #   ports:
+  #     - "7070:8080"
+  #   networks:
+  #     - appnet
+  #   environment:
+  #     - SPARK_MASTER_HOST=spark
+  #     - SPARK_LOG_DIR=/tmp
+  #     - BOOTSTRAP_SERVERS=kafka-0:9092
+  #     - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-not_set}
+  #     - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-not_set}
+  #     - AWS_REGION=${AWS_REGION:-not_set}
+  #   volumes:
+  #     - ./dockers/spark/entrypoint.sh:/usr/bin/entrypoint.sh
+  #     - ./:/home/hadoop/app
+  # spark-worker:
+  #   image: emr-6.15.0-spark:local
+  #   container_name: spark-worker
+  #   command: executor
+  #   ports:
+  #     - "7071:8081"
+  #   networks:
+  #     - appnet
+  #   environment:
+  #     - SPARK_DRIVER_URL=spark://spark:7077
+  #     - SPARK_EXECUTOR_CORES=2
+  #     - SPARK_EXECUTOR_MEMORY=2G
+  #     - SPARK_LOG_DIR=/tmp
+  #     - BOOTSTRAP_SERVERS=kafka-0:9092
+  #     - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-not_set}
+  #     - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-not_set}
+  #     - AWS_REGION=${AWS_REGION:-not_set}
+  #   volumes:
+  #     - ./dockers/spark/entrypoint.sh:/usr/bin/entrypoint.sh
+  #     - ./:/home/hadoop/app
+  #   depends_on:
+  #     - spark
   zookeeper:
     image: bitnami/zookeeper:3.5
     container_name: zookeeper
