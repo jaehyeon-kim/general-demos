@@ -5,7 +5,7 @@ ENV PYTHONPATH="$PYTHONPATH:/usr/lib/spark/python/lib/py4j-src.zip:/usr/lib/spar
 USER root
 
 ## Add hadoop to sudo
-RUN yum install -y sudo git \
+RUN yum install -y sudo \
   && echo "hadoop ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 ## Update spark config and log4j properties
