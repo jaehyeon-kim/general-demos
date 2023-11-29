@@ -23,8 +23,7 @@ def _qry_sink_table(table_name: str, topic_name: str, bootstrap_servers: str):
     CREATE TABLE {table_name} (
         `id`        VARCHAR,
         `value`     INT,
-        `ts`        TIMESTAMP(3)  
-
+        `ts`        TIMESTAMP(3)
     ) WITH (
         'connector' = 'kafka',
         'topic' = '{topic_name}',
@@ -79,7 +78,7 @@ if __name__ == "__main__":
     env.set_runtime_mode(RuntimeExecutionMode.STREAMING)
     if RUNTIME_ENV == "LOCAL":
         SRC_DIR = os.path.dirname(os.path.realpath(__file__))
-        JAR_FILES = ["flink-sql-connector-kafka-1.17.1.jar"]
+        JAR_FILES = ["flink-sql-connector-kafka-1.17.1.jar"] # should exist where producer.py exists
         JAR_PATHS = tuple(
             [f"file://{os.path.join(SRC_DIR, name)}" for name in JAR_FILES]
         )        

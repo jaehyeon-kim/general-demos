@@ -64,11 +64,9 @@ services:
     depends_on:
       - jobmanager
   spark:
-    image: emr-6.15.0-spark:local
+    image: public.ecr.aws/emr-on-eks/spark/emr-6.15.0:latest
     container_name: spark
-    command: driver
-    ports:
-      - "7070:8080"
+    command: /usr/bin/bash -c "while true; do sleep 2000; done"
     networks:
       - appnet
     environment:
@@ -76,33 +74,10 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-not_set}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-not_set}
       - AWS_REGION=${AWS_REGION:-not_set}
-      - SPARK_MASTER_HOST=spark
-      - SPARK_LOG_DIR=/tmp
     volumes:
-      - ./dockers/spark/entrypoint.sh:/usr/bin/entrypoint.sh
       - ./:/home/hadoop/project
-  spark-worker:
-    image: emr-6.15.0-spark:local
-    container_name: spark-worker
-    command: executor
-    ports:
-      - "7071:8081"
-    networks:
-      - appnet
-    environment:
-      - BOOTSTRAP_SERVERS=kafka-0:9092
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-not_set}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-not_set}
-      - AWS_REGION=${AWS_REGION:-not_set}
-      - SPARK_DRIVER_URL=spark://spark:7077
-      - SPARK_EXECUTOR_CORES=2
-      - SPARK_EXECUTOR_MEMORY=2G
-      - SPARK_LOG_DIR=/tmp
-    volumes:
-      - ./dockers/spark/entrypoint.sh:/usr/bin/entrypoint.sh
-      - ./:/home/hadoop/project
-    depends_on:
-      - spark
+      - ./dockers/spark/spark-defaults.conf:/usr/lib/spark/conf/spark-defaults.conf
+      - ./dockers/spark/log4j2.properties:/usr/lib/spark/conf/log4j2.properties
   zookeeper:
     image: bitnami/zookeeper:3.5
     container_name: zookeeper
@@ -141,7 +116,7 @@ services:
     image: provectuslabs/kafka-ui:v0.7.1
     container_name: kafka-ui
     ports:
-      - "8080:8080"
+      - "3000:8080"
     networks:
       - appnet
     environment:
@@ -155,6 +130,7 @@ services:
 networks:
   appnet:
     name: app-network
+
 volumes:
   flink_data:
     driver: local

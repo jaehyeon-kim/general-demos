@@ -17,21 +17,27 @@ RUN curl -o /usr/lib/flink/lib/flink-connector-kafka-${FLINK_VERSION}.jar \
   && curl -L -o /usr/lib/flink/lib/flink-faker-${FAKER_VERSION}.jar \
       https://github.com/knaufk/flink-faker/releases/download/v${FAKER_VERSION}/flink-faker-${FAKER_VERSION}.jar
 
+## fix error to do 'FileLock' port info
 # getAvailablePort() in NetUtils class write to /mnt/tmp instead of /tmp
 #   see https://stackoverflow.com/questions/77539526/fail-to-start-flink-sql-client-on-emr-on-eks-docker-image
 RUN mkdir -p /mnt/tmp
 
+##
 ## hadoop configuration for Glue data catalog integration
-# fs.s3.buffer.dir value of /glue/confs/hadoop/conf/core-site.xml
-RUN mkdir -p /mnt/s3
-
-# add missing jar files
+##
+## add missing jar files
 RUN curl -L -o /usr/lib/flink/lib/javax.inject-1.jar \
       https://repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar \
   && curl -L -o /usr/lib/flink/lib/aopalliance-1.0.jar \
       https://repo1.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0.jar
 
-# copy updated core-site.xml
+## create /mnt/s3 (value of fs.s3.buffer.dir) beforehand
+RUN mkdir -p /mnt/s3
+
+## copy updated core-site.xml
+## update credentials providers and value of fs.s3.buffer.dir to /mnt/s3 only
 USER root
+
 COPY ./core-site.xml /glue/confs/hadoop/conf/core-site.xml
+
 USER flink
