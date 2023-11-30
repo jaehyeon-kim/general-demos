@@ -66,7 +66,9 @@ services:
   spark:
     image: public.ecr.aws/emr-on-eks/spark/emr-6.15.0:latest
     container_name: spark
-    command: /usr/bin/bash -c "while true; do sleep 2000; done"
+    command: /usr/lib/spark/sbin/start-history-server.sh
+    ports:
+      - "18080:18080"
     networks:
       - appnet
     environment:
@@ -74,6 +76,7 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-not_set}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-not_set}
       - AWS_REGION=${AWS_REGION:-not_set}
+      - SPARK_NO_DAEMONIZE=true
     volumes:
       - ./:/home/hadoop/project
       - ./dockers/spark/spark-defaults.conf:/usr/lib/spark/conf/spark-defaults.conf
