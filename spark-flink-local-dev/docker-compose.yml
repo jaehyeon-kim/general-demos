@@ -116,7 +116,7 @@ services:
     image: provectuslabs/kafka-ui:v0.7.1
     container_name: kafka-ui
     ports:
-      - "3000:8080"
+      - "8080:8080"
     networks:
       - appnet
     environment:

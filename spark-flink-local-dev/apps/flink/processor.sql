@@ -1,7 +1,7 @@
 SET 'state.checkpoints.dir' = 'file:///tmp/checkpoints/';
 SET 'execution.checkpointing.interval' = '60000';
 
--- // source table
+-- // create the source table, metadata not registered in glue datalog
 CREATE TABLE source_tbl(
   `id`      STRING,
   `value`   INT,
@@ -15,18 +15,26 @@ CREATE TABLE source_tbl(
   'scan.startup.mode' = 'latest-offset'
 );
 
---// Glue Catalog
+--// create a hive catalogs that integrates with the glue catalog
 CREATE CATALOG glue_catalog WITH (
   'type' = 'hive',
   'default-database' = 'default',
   'hive-conf-dir' = '/glue/confs/hive/conf'
 );
+-- Flink SQL> show catalogs;
+-- +-----------------+
+-- |    catalog name |
+-- +-----------------+
+-- | default_catalog |
+-- |    glue_catalog |
+-- +-----------------+
 
+-- // create a database named demo
 CREATE DATABASE IF NOT EXISTS glue_catalog.demo 
   WITH ('hive.database.location-uri'= 's3://demo-ap-southeast-2/warehouse/');
 
+-- // create the sink table using hive dialect
 SET table.sql-dialect=hive;
-
 CREATE TABLE glue_catalog.demo.sink_tbl(
   `id`      STRING,
   `value`   INT,
@@ -34,7 +42,6 @@ CREATE TABLE glue_catalog.demo.sink_tbl(
 ) 
 PARTITIONED BY (`year` STRING, `month` STRING, `date` STRING, `hour` STRING) 
 STORED AS parquet 
--- LOCATION 's3://demo-ap-southeast-2/warehouse/order_sink'
 TBLPROPERTIES (
   'partition.time-extractor.timestamp-pattern'='$year-$month-$date $hour:00:00',
   'sink.partition-commit.trigger'='partition-time',
@@ -42,6 +49,7 @@ TBLPROPERTIES (
   'sink.partition-commit.policy.kind'='metastore,success-file'
 );
 
+-- // insert into the sink table
 INSERT INTO TABLE glue_catalog.demo.sink_tbl
 SELECT 
   `id`, 
