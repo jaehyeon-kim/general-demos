@@ -1,9 +1,11 @@
 # PySpark Overview
 # https://spark.apache.org/docs/latest/api/python/index.html
 
+export SCRIPT_PATH=/home/hadoop/project/apps/spark/code/ch03.py
+
 ## spark submit
 docker exec spark spark-submit \
-  --master local[*] --deploy-mode client <path-to-script>
+  --master local[*] --deploy-mode client $SCRIPT_PATH
 
 ## pyspark
 docker exec -it spark pyspark --master local[*] --deploy-mode client 

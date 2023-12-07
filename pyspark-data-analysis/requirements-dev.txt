@@ -2,7 +2,6 @@
 apache-flink==1.17.1
 pyspark==3.4.1
 boto3
-black
 pytest
 pytest-cov
 ipdb
