@@ -2,7 +2,7 @@ version: "3.5"
 
 services:
   spark:
-    image: public.ecr.aws/emr-on-eks/spark/emr-6.15.0:latest
+    image: emr-6.15.0-spark:local
     container_name: spark
     command: /usr/lib/spark/sbin/start-history-server.sh
     ports:
