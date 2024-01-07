@@ -50,4 +50,10 @@
       "source.formatAll.terraform": "explicit"
     }
   }
+  // "files.associations": {
+  //   "*.sql": "jinja-sql"
+  //   // "*.yml": "jinja-yaml"
+  // },
+  // "dbt.enableNewQueryPanel": true,
+  // "dbt.enableNewLineagePanel": true
 }
