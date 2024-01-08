@@ -1,0 +1,25 @@
+version: "3.5"
+
+services:
+  spark:
+    image: emr-6.15.0-spark:local
+    container_name: spark
+    command: /usr/lib/spark/sbin/start-history-server.sh
+    ports:
+      - "18080:18080"
+    networks:
+      - appnet
+    environment:
+      - BOOTSTRAP_SERVERS=kafka-0:9092
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-not_set}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-not_set}
+      - AWS_REGION=${AWS_REGION:-not_set}
+      - SPARK_NO_DAEMONIZE=true
+    volumes:
+      - ./:/home/hadoop/project
+      - ./dockers/spark/spark-defaults.conf:/usr/lib/spark/conf/spark-defaults.conf
+      - ./dockers/spark/log4j2.properties:/usr/lib/spark/conf/log4j2.properties
+
+networks:
+  appnet:
+    name: app-network
