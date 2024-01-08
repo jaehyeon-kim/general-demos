@@ -38,7 +38,7 @@ rdd.map(lambda r: r["title"]).reduce(lambda x, y: max(x, y))
 
 ## find abbreviations with 5 or more letters in the abstract eg) (aaaaa)
 def get_abb(s):
-    return re.search(r"\([a-zA-Z]{5, }?\)", s) is not None
+    return re.search(r"\([a-zA-Z]{5,}?\)", s) is not None
 
 
 rdd.filter(lambda r: get_abb(r["abstract"])).count()
