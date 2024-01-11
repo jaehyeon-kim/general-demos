@@ -1,0 +1,32 @@
+<configuration>
+  <property>
+    <name>fs.s3a.aws.credentials.provider</name>
+    <value>com.amazonaws.auth.EnvironmentVariableCredentialsProvider</value>
+  </property>
+
+  <property>
+    <name>fs.s3.customAWSCredentialsProvider</name>
+    <value>com.amazonaws.auth.EnvironmentVariableCredentialsProvider</value>
+  </property>
+
+  <property>
+    <name>fs.s3.impl</name>
+    <value>com.amazon.ws.emr.hadoop.fs.EmrFileSystem</value>
+  </property>
+
+  <property>
+    <name>fs.s3n.impl</name>
+    <value>com.amazon.ws.emr.hadoop.fs.EmrFileSystem</value>
+  </property>
+
+  <property>
+    <name>fs.AbstractFileSystem.s3.impl</name>
+    <value>org.apache.hadoop.fs.s3.EMRFSDelegate</value>
+  </property>
+
+  <property>
+    <name>fs.s3.buffer.dir</name>
+    <value>/mnt/s3</value>
+    <final>true</final>
+  </property>
+</configuration>
