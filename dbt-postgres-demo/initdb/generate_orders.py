@@ -90,7 +90,7 @@ if __name__ == "__main__":
         python generate_orders.py
         NUM_ORDERS=10000 python generate_orders.py
     """
-    NUM_ORDERS = int(os.getenv("NUM_ORDERS", "30000"))
+    NUM_ORDERS = int(os.getenv("NUM_ORDERS", "20000"))
     CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
     users = User.load_data(os.path.join(CURRENT_DIR, "data", "users.csv"))
     products = Product.load_data(

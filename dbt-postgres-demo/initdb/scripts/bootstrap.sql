@@ -21,8 +21,7 @@ CREATE TABLE staging.users
     residence VARCHAR(500),
     lat DECIMAL(10, 8),
     lon DECIMAL(10, 8),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT users_pk PRIMARY KEY (id)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS staging.products
@@ -33,8 +32,7 @@ CREATE TABLE IF NOT EXISTS staging.products
     price FLOAT,
     category VARCHAR(100),
     image VARCHAR(200),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT products_pk PRIMARY KEY (id)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS staging.orders
@@ -42,8 +40,7 @@ CREATE TABLE IF NOT EXISTS staging.orders
     id UUID,
     user_id INT,
     items JSONB,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT orders_pk PRIMARY KEY (id)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- // copy data
