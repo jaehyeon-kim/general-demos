@@ -24,7 +24,7 @@ WITH dim_products AS (
   FROM src_orders
 )
 SELECT
-  {{ dbt_utils.generate_surrogate_key(['p.product_key', 'u.user_key']) }} as order_key,
+  {{ dbt_utils.generate_surrogate_key(['order_id', 'p.product_id', 'u.user_id']) }} as order_key,
   p.product_key,
   u.user_key,
   o.order_id,
