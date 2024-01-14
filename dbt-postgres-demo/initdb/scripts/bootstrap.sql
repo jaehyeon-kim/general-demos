@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS staging.products
 
 CREATE TABLE IF NOT EXISTS staging.orders
 (
-    id UUID,
+    id SERIAL,
     user_id INT,
     items JSONB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -51,5 +51,5 @@ FROM '/tmp/users.csv' DELIMITER ',' CSV HEADER;
 COPY staging.products(name, description, price, category, image)
 FROM '/tmp/products.csv' DELIMITER ',' CSV HEADER;
 
-COPY staging.orders(id, user_id, items)
+COPY staging.orders(user_id, items)
 FROM '/tmp/orders.csv' DELIMITER ',' CSV HEADER;
