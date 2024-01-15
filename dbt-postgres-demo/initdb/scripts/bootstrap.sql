@@ -53,3 +53,13 @@ FROM '/tmp/products.csv' DELIMITER ',' CSV HEADER;
 
 COPY staging.orders(user_id, items)
 FROM '/tmp/orders.csv' DELIMITER ',' CSV HEADER;
+
+--
+-- // for airflow metadata
+--
+
+CREATE DATABASE airflow;
+CREATE ROLE airflow 
+LOGIN 
+PASSWORD 'airflow';
+GRANT ALL ON DATABASE airflow TO airflow;
