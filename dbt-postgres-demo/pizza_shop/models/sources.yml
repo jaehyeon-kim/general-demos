@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: staging
+    tables:
+      - name: users
+        identifier: users
+      - name: products
+        identifier: products
+      - name: orders
+        identifier: orders

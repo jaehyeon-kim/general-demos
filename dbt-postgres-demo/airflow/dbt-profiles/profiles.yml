@@ -1,0 +1,12 @@
+pizza_shop:
+  outputs:
+    dev:
+      dbname: devdb
+      host: postgres
+      pass: password
+      port: 5432
+      schema: dev
+      threads: 2
+      type: postgres
+      user: devuser
+  target: dev

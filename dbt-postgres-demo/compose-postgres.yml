@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - ./initdb/scripts:/docker-entrypoint-initdb.d
+      - ./initdb/data:/tmp
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=devdb
+      - POSTGRES_USER=devuser
+      - POSTGRES_PASSWORD=password
+      - TZ=Australia/Sydney
+
+volumes:
+  postgres_data:
+    driver: local
+    name: postgres_data
