@@ -1,12 +1,9 @@
-import logging
-from pprint import pprint
-
 import pendulum
 from airflow.models.dag import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 
-log = logging.getLogger(__name__)
+import update_records
 
 with DAG(
     dag_id="demo_etl",
@@ -15,15 +12,8 @@ with DAG(
     catchup=False,
     tags=["pizza"],
 ):
-
-    def update_records(ds=None, **kwargs):
-        """Print the Airflow context and ds variable from the context."""
-        pprint(kwargs)
-        print(ds)
-        return "Whatever you return gets printed in the logs"
-
     task_records_update = PythonOperator(
-        task_id="update_records", python_callable=update_records
+        task_id="update_records", python_callable=update_records.main
     )
 
     task_dbt_run = BashOperator(
