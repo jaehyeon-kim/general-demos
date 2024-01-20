@@ -41,12 +41,12 @@ class DbHelper:
                 return values
 
     def commit(self):
-        if not self.connection.closed:
-            self.connection.commit()
+        if not self.conn.closed:
+            self.conn.commit()
 
     def close(self):
-        if self.connection and (not self.connection.closed):
-            self.connection.close()
+        if self.conn and (not self.conn.closed):
+            self.conn.close()
 
 
 @dataclasses.dataclass
