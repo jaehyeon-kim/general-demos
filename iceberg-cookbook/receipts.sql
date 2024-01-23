@@ -70,3 +70,16 @@ FOR TIMESTAMP AS OF TIMESTAMP '2022-09-29 16:30:59.707';
 -- 
 
 -- // using hidden partitioning
+CREATE TABLE examples.logs (
+  level string,
+  event_ts timestamp,
+  message string
+) PARTITIONED BY (
+  level,
+  days(event_ts)
+);
+
+INSERT INTO logs VALUES
+    ('ERROR', TIMESTAMP '2023-12-25T10:31:40', 'Failed to ...'),
+    ('INFO', TIMESTAMP '2023-12-25T11:14:51', 'Updating ...'),
+    ('INFO', TIMESTAMP '2023-12-25T11:14:52', 'Loading ...');
