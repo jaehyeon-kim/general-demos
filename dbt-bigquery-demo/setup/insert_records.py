@@ -41,7 +41,7 @@ class DataHelper:
         self.current_dir = current_dir or os.path.dirname(os.path.realpath(__file__))
 
     def load_data(self, file_name: str):
-        created_at = datetime.datetime.now().isoformat(timespec="milliseconds")
+        created_at = datetime.datetime.now().isoformat(timespec="seconds")
         records = []
         with open(os.path.join(self.current_dir, "data", file_name), mode="r") as f:
             rows = csv.DictReader(f)
