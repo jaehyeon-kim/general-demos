@@ -1,0 +1,2 @@
+dbt-bigquery==1.7.4
+google-cloud-bigquery
