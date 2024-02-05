@@ -1,0 +1,4 @@
+-r requirements.txt
+awswrangler
+pendulum
+apache-airflow==2.8.0
