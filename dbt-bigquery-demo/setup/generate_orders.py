@@ -10,8 +10,8 @@ class Order:
     user_id: int
     items: str
 
-    @classmethod
-    def create(self):
+    @staticmethod
+    def create():
         order_items = [
             {"product_id": id, "quantity": random.randint(1, 5)}
             for id in set(random.choices(range(1, 82), k=random.randint(1, 10)))
