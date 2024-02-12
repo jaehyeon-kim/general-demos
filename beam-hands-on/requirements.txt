@@ -1,0 +1,1 @@
+apache-beam[test,interactive]==2.53.0

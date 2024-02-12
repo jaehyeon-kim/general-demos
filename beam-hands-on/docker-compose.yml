@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  jupyter:
+    image: beam-minimal:2.53.0
+    container_name: jupyter
+    ports:
+      - 8888:8888
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+      JUPYTER_TOKEN: "docker"
+    volumes:
+      - ./src:/home/jovyan
