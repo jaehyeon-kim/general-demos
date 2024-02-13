@@ -1,4 +1,4 @@
-FROM jupyter/scipy-notebook:python-3.9
+FROM jupyter/scipy-notebook:python-3.10
 
 ARG BEAM_VERSION
 ENV BEAM_VERSION=${PYTHON_VERSION:-2.53.0}
@@ -31,6 +31,3 @@ USER ${NB_UID}
 #   pyopenssl 22.1.0 requires cryptography<39,>=38.0.0, but you have cryptography 42.0.2 which is incompatible.
 RUN pip install "apache-beam[gcp,aws,azure,test,docs,interactive]==${BEAM_VERSION}" \
   && pip install pyopenssl --upgrade
-
-## enable ipywidgets
-RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager

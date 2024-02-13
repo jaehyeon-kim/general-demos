@@ -3,3 +3,4 @@ src/.ipynb_checkpoints
 src/.ipython
 src/.jupyter
 src/.local
+data*
