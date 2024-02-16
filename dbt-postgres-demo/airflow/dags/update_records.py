@@ -144,12 +144,12 @@ class Order:
     items: str
 
     @classmethod
-    def create(self):
+    def create(cls):
         order_items = [
             {"product_id": id, "quantity": random.randint(1, 5)}
             for id in set(random.choices(range(1, 82), k=random.randint(1, 10)))
         ]
-        return Order(
+        return cls(
             user_id=random.randint(1, 10000),
             items=json.dumps([item for item in order_items]),
         )

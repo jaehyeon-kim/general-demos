@@ -1,0 +1,14 @@
+pizza_shop:
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: "{{ env_var('GCP_PROJECT') }}"
+      dataset: pizza_shop
+      threads: 4
+      keyfile: "{{ env_var('SA_KEYFILE') }}"
+      job_execution_timeout_seconds: 300
+      job_retries: 1
+      location: US
+      priority: interactive
+  target: dev
