@@ -1,6 +1,7 @@
 import os
 import time
 import argparse
+from typing import List
 
 from google.cloud import pubsub_v1
 from google.oauth2 import service_account
@@ -43,15 +44,18 @@ class Publisher:
         except Exception as e:
             raise RuntimeError(e) from e
 
-    def publish_counts(self):
-        current_dir = os.path.dirname(os.path.realpath(__file__))
-        with open(os.path.join(current_dir, "counts.csv"), "rb") as lines:
-            # skip header
-            lines.readline()
-            for line in lines:
-                print(f"publishing {line} to {self.topic}")
-                self.publish(line)
-                time.sleep(1)
+    def read_lines(self, file_path: str, ignore_header: bool = True):
+        with open(file_path, "rb") as lines:
+            if ignore_header:
+                lines.readline()
+            return lines.readlines()
+
+    def publish_items(self, lines: List[bytes]):
+        for ind, line in enumerate(lines):
+            print(f"publishing {line} to {self.topic}")
+            self.publish(line)
+            wait_for = 1 if ind % 10 != 0 else 5
+            time.sleep(wait_for)
 
 
 class Subscriber:
@@ -100,7 +104,10 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--project", type=str, help="project ID")
     parser.add_argument("-t", "--topic", type=str, default="input", help="topic name")
     parser.add_argument(
-        "-s", "--sub", type=str, default="sub", help="subscription name"
+        "-s", "--sub", type=str, default="input-sub", help="subscription name"
+    )
+    parser.add_argument(
+        "-i", "--item", default="counts", type=str, help="source item file"
     )
 
     args = parser.parse_args()
@@ -108,7 +115,9 @@ if __name__ == "__main__":
         pub = Publisher(args.project, args.topic)
         if not pub.topic_exists():
             pub.create_topic()
-        pub.publish_counts()
+        current_dir = os.path.dirname(os.path.realpath(__file__))
+        items = pub.read_lines(os.path.join(current_dir, f"{args.item}.csv"))
+        pub.publish_items(lines=items)
 
     if not args.is_pub:
         sub = Subscriber(args.project, args.topic, args.sub)
