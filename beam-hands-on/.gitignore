@@ -1,4 +1,5 @@
 src/.cache
+src/.gnupg
 src/.ipynb_checkpoints
 src/.ipython
 src/.jupyter
@@ -10,3 +11,4 @@ src/.bash_history
 src/.gitconfig
 src/.python_history
 output*
+key.json
