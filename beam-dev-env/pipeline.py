@@ -1,4 +1,3 @@
-import argparse
 import typing
 
 import apache_beam as beam
@@ -18,29 +17,23 @@ def kafka_record_processor(kafka_kv_rec):
     return bytes(rec_key, "utf-8"), bytes(rec_val, "utf-8")
 
 
-job_server = "localhost"
+flink_master = "localhost"
 # Set up this host to point to 127.0.0.1 in /etc/hosts
 bootstrap_servers = "host.docker.internal:29092"
-# job_server = "jobservice"
-# bootstrap_servers = "kafka-0:9092"
 kafka_consumer_group_id = "kafka_echo"
 input_topic = "echo-input"
 output_topic = "echo-output"
 
 
-def init_pipeline(job_server=job_server):
+def init_pipeline(flink_master=flink_master):
     pipeline_opts = {
-        # MUST BE PortableRunner
-        "runner": "PortableRunner",
+        "runner": "FlinkRunner",
+        "flink_master": f"{flink_master}:8081",
         "job_name": "kafka_echo_demo",
-        "job_endpoint": f"{job_server}:8099",
-        "artifact_endpoint": f"{job_server}:8098",
         "environment_type": "LOOPBACK",
-        # "environment_type": "EXTERNAL",
-        # "environment_config": "workerpool:50000",
         "streaming": True,
         "parallelism": 2,
-        "experiments": ["use_deprecated_read"],
+        # "experiments": ["use_deprecated_read"],
         "checkpointing_interval": "60000",
     }
     pipeline_options = PipelineOptions([], **pipeline_opts)

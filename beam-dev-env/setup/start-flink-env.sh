@@ -16,8 +16,8 @@ docker-compose -f ${SCRIPT_DIR}/docker-compose.yml up -d
 ##  taskmanager.numberOfTaskSlots: 5  # update from 1
 ${SCRIPT_DIR}/flink-1.16.3/bin/start-cluster.sh
 
-#### start flink job server
-## 1. download the driver jar file
-## wget https://repo1.maven.org/maven2/org/apache/beam/beam-runners-flink-1.16-job-server/2.53.0/beam-runners-flink-1.16-job-server-2.53.0.jar
-java -cp ${SCRIPT_DIR}/beam-runners-flink-1.16-job-server-2.53.0.jar \
-  org.apache.beam.runners.flink.FlinkJobServerDriver --flink-master=localhost:8081 --job-host=0.0.0.0
+# #### start flink job server <-- not necessary if using FlinkRunner
+# ## 1. download the driver jar file
+# ## wget https://repo1.maven.org/maven2/org/apache/beam/beam-runners-flink-1.16-job-server/2.53.0/beam-runners-flink-1.16-job-server-2.53.0.jar
+# java -cp ${SCRIPT_DIR}/beam-runners-flink-1.16-job-server-2.53.0.jar \
+#   org.apache.beam.runners.flink.FlinkJobServerDriver --flink-master=localhost:8081 --job-host=0.0.0.0
