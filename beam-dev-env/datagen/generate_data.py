@@ -1,5 +1,6 @@
 import os
 import json
+import uuid
 import argparse
 import datetime
 import math
@@ -7,26 +8,6 @@ from faker import Faker
 import geocoder
 import random
 from kafka import KafkaProducer
-
-
-class Producer:
-    def __init__(self, bootstrap_servers: list, topic: str):
-        self.bootstrap_servers = bootstrap_servers
-        self.topic = topic
-        self.producer = self.create()
-
-    def create(self):
-        return KafkaProducer(
-            bootstrap_servers=self.bootstrap_servers,
-            value_serializer=lambda v: json.dumps(v).encode("utf-8"),
-            key_serializer=lambda v: json.dumps(v).encode("utf-8"),
-        )
-
-    def send(self, event: dict):
-        try:
-            self.producer.send(self.topic, key={"event_id": event["id"]}, value=event)
-        except Exception as e:
-            raise RuntimeError("fails to send a message") from e
 
 
 class EventGenerator:
@@ -38,7 +19,7 @@ class EventGenerator:
         max_lag_secs: int,
         bootstrap_servers: list,
         topic_name: str,
-        process_id: int = os.getpid(),
+        file_name: str = str(uuid.uuid4()),
     ):
         self.source = source
         self.max_num_users = max_num_users
@@ -46,9 +27,10 @@ class EventGenerator:
         self.max_lag_seconds = max_lag_secs
         self.bootstrap_servers = bootstrap_servers
         self.topic_name = topic_name
-        self.pid = process_id
+        self.file_name = file_name
         self.user_pool = self.create_user_pool()
-        self.kafka_producer = self.create_producer()
+        if self.source == "streaming":
+            self.kafka_producer = self.create_producer()
 
     def create_user_pool(self):
         init_fields = [
@@ -117,7 +99,9 @@ class EventGenerator:
 
     def append_to_file(self, event: dict):
         parent_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        with open(os.path.join(parent_dir, "events", f"{self.pid}.out"), "a") as fp:
+        with open(
+            os.path.join(parent_dir, "events", f"{self.file_name}.out"), "a"
+        ) as fp:
             fp.write(f"{json.dumps(event)}\n")
 
     def send_to_kafka(self, event: dict):
@@ -130,7 +114,6 @@ class EventGenerator:
             raise RuntimeError("fails to send a message") from e
 
     def generate_events(self):
-        events = []
         num_events = 0
         while True:
             num_events += 1
@@ -158,7 +141,6 @@ class EventGenerator:
                 self.append_to_file(event)
             else:
                 self.send_to_kafka(event)
-            events.append(event)
 
 
 if __name__ == "__main__":
