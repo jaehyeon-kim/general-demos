@@ -175,7 +175,7 @@ if __name__ == "__main__":
         "--max_num_users",
         "-u",
         type=int,
-        default=1000,
+        default=50,
         help="The maximum number of users to create",
     )
     parser.add_argument(
@@ -183,13 +183,13 @@ if __name__ == "__main__":
         "-e",
         type=int,
         default=math.inf,
-        help="The maximum number of events to create. Don't set if streaming",
+        help="The maximum number of events to create.",
     )
     parser.add_argument(
         "--max_lag_secs",
         "-l",
         type=int,
-        default=5,
+        default=0,
         help="The maximum seconds that a record can be lagged.",
     )
 
