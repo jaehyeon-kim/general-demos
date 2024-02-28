@@ -120,7 +120,7 @@ class EventGenerator:
         """
         parent_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         with open(
-            os.path.join(parent_dir, "events", f"{self.file_name}.out"), "a"
+            os.path.join(parent_dir, "inputs", f"{self.file_name}.out"), "a"
         ) as fp:
             fp.write(f"{json.dumps(event)}\n")
 
