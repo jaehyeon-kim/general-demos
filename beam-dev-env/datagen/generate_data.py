@@ -14,17 +14,17 @@ class EventGenerator:
     def __init__(
         self,
         source: str,
-        max_num_users: int,
-        max_num_events: int,
-        max_lag_secs: int,
+        num_users: int,
+        num_events: int,
+        max_lag_seconds: int,
         bootstrap_servers: list,
         topic_name: str,
         file_name: str = str(uuid.uuid4()),
     ):
         self.source = source
-        self.max_num_users = max_num_users
-        self.max_num_events = max_num_events
-        self.max_lag_seconds = max_lag_secs
+        self.num_users = num_users
+        self.num_events = num_events
+        self.max_lag_seconds = max_lag_seconds
         self.bootstrap_servers = bootstrap_servers
         self.topic_name = topic_name
         self.file_name = file_name
@@ -33,6 +33,11 @@ class EventGenerator:
             self.kafka_producer = self.create_producer()
 
     def create_user_pool(self):
+        """
+        Returns a list of user instances given the max number of users.
+        Each user instances is a dictionary that has the following attributes:
+            ip, id, lat, lng, user_agent, age_bracket, opted_into_marketing
+        """
         init_fields = [
             "ip",
             "id",
@@ -43,11 +48,14 @@ class EventGenerator:
             "opted_into_marketing",
         ]
         user_pool = []
-        for _ in range(self.max_num_users):
+        for _ in range(self.num_users):
             user_pool.append(dict(zip(init_fields, self.set_initial_values())))
         return user_pool
 
     def create_producer(self):
+        """
+        Returns a KafkaProducer instance
+        """
         return KafkaProducer(
             bootstrap_servers=self.bootstrap_servers,
             value_serializer=lambda v: json.dumps(v).encode("utf-8"),
@@ -55,9 +63,15 @@ class EventGenerator:
         )
 
     def set_initial_values(self, faker=Faker()):
+        """
+        Returns initial user attribute values using Faker
+        """
         ip = faker.ipv4()
         lookup = geocoder.ip(ip)
-        lat, lng = lookup.latlng if len(lookup.latlng) == 2 else ["", ""]
+        try:
+            lat, lng = lookup.latlng
+        except Exception:
+            lat, lng = "", ""
         id = str(hash(f"{ip}{lat}{lng}"))
         user_agent = random.choice(
             [
@@ -73,6 +87,9 @@ class EventGenerator:
         return ip, id, lat, lng, user_agent, age_bracket, opted_into_marketing
 
     def set_req_info(self):
+        """
+        Returns a tuple of HTTP request information - http_request, http_response, file_size_bytes
+        """
         uri = random.choice(
             [
                 "home.html",
@@ -98,6 +115,9 @@ class EventGenerator:
         return http_request, http_response, file_size_bytes
 
     def append_to_file(self, event: dict):
+        """
+        Appends a website visit event record into an event output file.
+        """
         parent_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         with open(
             os.path.join(parent_dir, "events", f"{self.file_name}.out"), "a"
@@ -105,6 +125,9 @@ class EventGenerator:
             fp.write(f"{json.dumps(event)}\n")
 
     def send_to_kafka(self, event: dict):
+        """
+        Sends a website visit event record into a Kafka topic.
+        """
         try:
             self.kafka_producer.send(
                 self.topic_name, key={"event_id": event["id"]}, value=event
@@ -114,12 +137,16 @@ class EventGenerator:
             raise RuntimeError("fails to send a message") from e
 
     def generate_events(self):
+        """
+        Generate webstie visit events as per the max number events.
+        Events are either saved to an output file (batch) or sent to a Kafka topic (streaming).
+        """
         num_events = 0
         while True:
             num_events += 1
-            if num_events > self.max_num_events:
+            if num_events > self.num_events:
                 break
-            event_ts = datetime.datetime.now() + datetime.timedelta(
+            event_ts = datetime.datetime.utcnow() + datetime.timedelta(
                 seconds=random.uniform(0, self.max_lag_seconds)
             )
             req_info = dict(
@@ -132,11 +159,13 @@ class EventGenerator:
                 **random.choice(self.user_pool),
                 **req_info,
                 **{
-                    "event_datetime": event_ts.isoformat(timespec="seconds"),
-                    "event_ts": int(event_ts.timestamp()),
+                    "event_datetime": event_ts.isoformat(timespec="milliseconds"),
+                    "event_ts": int(event_ts.timestamp() * 1000),
                 },
             }
-            print(event)
+            if num_events % 100 == 0:
+                print(f"{num_events} events created so far...")
+                print(event)
             if self.source == "batch":
                 self.append_to_file(event)
             else:
@@ -144,6 +173,12 @@ class EventGenerator:
 
 
 if __name__ == "__main__":
+    """
+    Batch example:
+        python datagen/generate_data.py --source batch --num_users 20 --num_events 10000 --max_lag_seconds 0
+    Streaming example:
+        python datagen/generate_data.py --source streaming --num_users 20 --max_lag_seconds 0
+    """
     parser = argparse.ArgumentParser(__file__, description="Web Server Data Generator")
     parser.add_argument(
         "--source",
@@ -154,21 +189,21 @@ if __name__ == "__main__":
         help="The data source - batch or streaming",
     )
     parser.add_argument(
-        "--max_num_users",
+        "--num_users",
         "-u",
         type=int,
         default=50,
-        help="The maximum number of users to create",
+        help="The number of users to create",
     )
     parser.add_argument(
-        "--max_num_events",
+        "--num_events",
         "-e",
         type=int,
         default=math.inf,
-        help="The maximum number of events to create.",
+        help="The number of events to create.",
     )
     parser.add_argument(
-        "--max_lag_secs",
+        "--max_lag_seconds",
         "-l",
         type=int,
         default=0,
@@ -177,18 +212,18 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     source = args.source
-    max_num_users = args.max_num_users
-    max_num_events = args.max_num_events
-    max_lag_secs = args.max_lag_secs
+    num_users = args.num_users
+    num_events = args.num_events
+    max_lag_seconds = args.max_lag_seconds
+    if source == "batch":
+        max_lag_seconds = 0
     process_id = os.getpid()
 
-    ## python datagen/generate_data.py -s batch -u 50 -e 10000 -l 6
-    ## python datagen/generate_data.py -s streaming -u 50 -e 10000 -l 6
     gen = EventGenerator(
         source,
-        max_num_users,
-        max_num_events,
-        max_lag_secs,
+        num_users,
+        num_events,
+        max_lag_seconds,
         os.getenv("BOOTSTRAP_SERVERS", "localhost:29092"),
         os.getenv("TOPIC_NAME", "event"),
     )
