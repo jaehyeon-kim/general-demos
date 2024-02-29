@@ -69,7 +69,7 @@ models:
       - name: product
         description: |
           Array of products in an order.
-          A product is a struct where the following attributes are pre-joined from the dim_products table:
+          A product is an array of struct where the following attributes are pre-joined from the dim_products table:
             key (product_key), id (product_id), name, price, quantity, description, category, and image
       - name: user
         description: |
