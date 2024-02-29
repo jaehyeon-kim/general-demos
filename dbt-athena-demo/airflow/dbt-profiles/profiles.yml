@@ -1,0 +1,11 @@
+pizza_shop:
+  outputs:
+    dev:
+      type: athena
+      database: awsdatacatalog
+      schema: pizza_shop
+      region_name: ap-southeast-2
+      s3_data_dir: s3://dbt-pizza-shop-demo/dbt-data/
+      s3_staging_dir: s3://dbt-pizza-shop-demo/dbt-staging/
+      threads: 4
+  target: dev

@@ -1,1 +1,2 @@
 dbt-athena-community==1.7.1
+awswrangler
