@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: pizza_shop
+    tables:
+      - name: users
+        identifier: staging_users
+      - name: products
+        identifier: staging_products
+      - name: orders
+        identifier: staging_orders
