@@ -175,7 +175,7 @@ class EventGenerator:
 if __name__ == "__main__":
     """
     Batch example:
-        python datagen/generate_data.py --source batch --num_users 20 --num_events 10000 --max_lag_seconds 0
+        python datagen/generate_data.py --source batch --num_users 20 --num_events 10000 --max_lag_seconds 30
     Streaming example:
         python datagen/generate_data.py --source streaming --num_users 20 --max_lag_seconds 0
     """
@@ -215,9 +215,6 @@ if __name__ == "__main__":
     num_users = args.num_users
     num_events = args.num_events
     max_lag_seconds = args.max_lag_seconds
-    if source == "batch":
-        max_lag_seconds = 0
-    process_id = os.getpid()
 
     gen = EventGenerator(
         source,
