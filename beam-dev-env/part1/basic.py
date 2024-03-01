@@ -1,8 +1,8 @@
 import os
+import datetime
 import argparse
 import json
 import logging
-import uuid
 
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
@@ -45,7 +45,9 @@ def run():
         | "Write to file"
         >> beam.io.WriteToText(
             file_path_prefix=os.path.join(
-                PARENT_DIR, "outputs", f"{str(uuid.uuid4())}-"
+                PARENT_DIR,
+                "outputs",
+                f"{int(datetime.datetime.now().timestamp() * 1000)}",
             ),
             file_name_suffix=".out",
         )
