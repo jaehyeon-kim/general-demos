@@ -3,7 +3,7 @@
     materialized = 'incremental',
     table_type='iceberg',
     format='parquet',
-    partitioned_by=['month(created_at)'],
+    partitioned_by=['day(created_at)'],
     incremental_strategy='append',
     unique_key='order_id',
     table_properties={
