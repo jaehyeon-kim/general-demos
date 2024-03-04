@@ -38,7 +38,9 @@ def parse_json(element: str):
 
 
 def run():
-    parser = argparse.ArgumentParser(description="Process website visit event")
+    parser = argparse.ArgumentParser(
+        description="Process statistics by user from website visit event"
+    )
     parser.add_argument(
         "--inputs",
         default="inputs",

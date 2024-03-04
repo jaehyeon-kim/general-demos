@@ -37,9 +37,28 @@ def parse_json(element: str):
     return EventLog(**row)
 
 
+def add_timestamp(element: EventLog):
+    ts = datetime.datetime.strptime(
+        element.event_datetime, "%Y-%m-%dT%H:%M:%S.%f"
+    ).timestamp()
+    return beam.window.TimestampedValue(element, ts)
+
+
+class AddWindowTS(beam.DoFn):
+    def process(self, element: int, window=beam.DoFn.WindowParam):
+        window_start = window.start.to_utc_datetime().isoformat(timespec="seconds")
+        window_end = window.end.to_utc_datetime().isoformat(timespec="seconds")
+        output = {
+            "window_start": window_start,
+            "window_end": window_end,
+            "page_views": element,
+        }
+        yield output
+
+
 def run():
     parser = argparse.ArgumentParser(
-        description="Process statistics by user from website visit event"
+        description="Process statistics by minute from website visit event"
     )
     parser.add_argument(
         "--inputs",
@@ -60,16 +79,14 @@ def run():
         p
         | "Read from files"
         >> beam.io.ReadFromText(
-            file_pattern=os.path.join(PARENT_DIR, opts.inputs, "*.out")
+            file_pattern=os.path.join(os.path.join(PARENT_DIR, "inputs", "*.out"))
         )
         | "Parse elements" >> beam.Map(parse_json).with_output_types(EventLog)
-        | "Aggregate by user"
-        >> beam.GroupBy("id")
-        .aggregate_field("id", CountCombineFn(), "page_views")
-        .aggregate_field("file_size_bytes", sum, "total_bytes")
-        .aggregate_field("file_size_bytes", max, "max_bytes")
-        .aggregate_field("file_size_bytes", min, "min_bytes")
-        | "To Dict" >> beam.Map(lambda e: e._asdict())
+        | "Add event timestamp" >> beam.Map(add_timestamp)
+        | "Tumble window per minute" >> beam.WindowInto(beam.window.FixedWindows(60))
+        | "Count per minute"
+        >> beam.CombineGlobally(CountCombineFn()).without_defaults()
+        | "Add window timestamp" >> beam.ParDo(AddWindowTS())
         | "Write to file"
         >> beam.io.WriteToText(
             file_path_prefix=os.path.join(
