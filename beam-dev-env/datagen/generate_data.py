@@ -3,6 +3,7 @@ import json
 import uuid
 import argparse
 import datetime
+import time
 import math
 from faker import Faker
 import geocoder
@@ -17,6 +18,7 @@ class EventGenerator:
         num_users: int,
         num_events: int,
         max_lag_seconds: int,
+        delay_seconds: float,
         bootstrap_servers: list,
         topic_name: str,
         file_name: str = str(uuid.uuid4()),
@@ -25,6 +27,7 @@ class EventGenerator:
         self.num_users = num_users
         self.num_events = num_events
         self.max_lag_seconds = max_lag_seconds
+        self.delay_seconds = delay_seconds
         self.bootstrap_servers = bootstrap_servers
         self.topic_name = topic_name
         self.file_name = file_name
@@ -163,21 +166,23 @@ class EventGenerator:
                     "event_ts": int(event_ts.timestamp() * 1000),
                 },
             }
-            if num_events % 100 == 0:
+            divide_by = 100 if self.source == "batch" else 10
+            if num_events % divide_by == 0:
                 print(f"{num_events} events created so far...")
                 print(event)
             if self.source == "batch":
                 self.append_to_file(event)
             else:
                 self.send_to_kafka(event)
+                time.sleep(self.delay_seconds or 0)
 
 
 if __name__ == "__main__":
     """
     Batch example:
-        python datagen/generate_data.py --source batch --num_users 20 --num_events 10000 --max_lag_seconds 30
+        python datagen/generate_data.py --source batch --num_users 20 --num_events 10000 --max_lag_seconds 60
     Streaming example:
-        python datagen/generate_data.py --source streaming --num_users 20 --max_lag_seconds 0
+        python datagen/generate_data.py --source streaming --num_users 20 --num_events 100 --max_lag_seconds 10 --delay_seconds 1
     """
     parser = argparse.ArgumentParser(__file__, description="Web Server Data Generator")
     parser.add_argument(
@@ -209,19 +214,28 @@ if __name__ == "__main__":
         default=0,
         help="The maximum seconds that a record can be lagged.",
     )
+    parser.add_argument(
+        "--delay_seconds",
+        "-d",
+        type=float,
+        default=None,
+        help="The amount of time that a record should be delayed. Only applicable to streaming.",
+    )
 
     args = parser.parse_args()
     source = args.source
     num_users = args.num_users
     num_events = args.num_events
     max_lag_seconds = args.max_lag_seconds
+    delay_seconds = args.delay_seconds
 
     gen = EventGenerator(
         source,
         num_users,
         num_events,
         max_lag_seconds,
+        delay_seconds,
         os.getenv("BOOTSTRAP_SERVERS", "localhost:29092"),
-        os.getenv("TOPIC_NAME", "event"),
+        os.getenv("TOPIC_NAME", "website-visit"),
     )
     gen.generate_events()
