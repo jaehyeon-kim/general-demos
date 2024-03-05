@@ -64,24 +64,21 @@ def run():
     options = PipelineOptions()
     options.view_as(StandardOptions).runner = opts.runner
 
-    ## Calcite support is quite limited!!
-    ## SqlValidatorException: No match found for function signature TO_TIMESTAMP(<CHARACTER>)
-    # query = """
-    # WITH cte AS (
-    #     SELECT TO_TIMESTAMP(event_datetime) AS ts FROM PCOLLECTION
-    # )
-    # SELECT
-    #     CAST(window_start AS VARCHAR) AS start_time,
-    #     CAST(window_end AS VARCHAR) AS end_time,
-    #     COUNT(*) AS page_views
-    # FROM TABLE(
-    #         TUMBLE(TABLE cte, DESCRIPTOR(ts), 'INTERVAL 1 MINUTE')
-    #     )
-    # GROUP BY
-    #     window_start, window_end
-    # """
+    calcite_query = """
+    WITH cte AS (
+        SELECT CAST(event_datetime AS TIMESTAMP) AS ts
+        FROM PCOLLECTION
+    )
+    SELECT
+        CAST(TUMBLE_START(ts, INTERVAL '1' MINUTE) AS VARCHAR) AS window_start,
+        CAST(TUMBLE_END(ts, INTERVAL '1' MINUTE) AS VARCHAR) AS window_end,
+        COUNT(*) AS page_view
+    FROM cte
+    GROUP BY
+        TUMBLE(ts, INTERVAL '1' MINUTE)
+    """
 
-    query = """
+    zeta_query = """
     SELECT
         STRING(window_start) AS start_time,
         STRING(window_end) AS end_time,
@@ -96,7 +93,7 @@ def run():
     """
 
     p = beam.Pipeline(options=options)
-    (
+    transformed = (
         p
         | "Read from files"
         >> beam.io.ReadFromText(
@@ -104,14 +101,35 @@ def run():
         )
         | "Parse elements" >> beam.Map(parse_json).with_output_types(EventLog)
         | "Select timestamp" >> beam.Map(format_timestamp).with_output_types(EventLog)
-        | "Count per minute" >> SqlTransform(query, dialect="zetasql")
-        | "To Dict" >> beam.Map(lambda e: e._asdict())
-        | "Write to file"
+    )
+
+    ## calcite sql output
+    (
+        transformed
+        | "Count per minute via Caltice" >> SqlTransform(calcite_query)
+        | "To Dict via Caltice" >> beam.Map(lambda e: e._asdict())
+        | "Write to file via Caltice"
         >> beam.io.WriteToText(
             file_path_prefix=os.path.join(
                 PARENT_DIR,
                 "outputs",
-                f"{int(datetime.datetime.now().timestamp() * 1000)}",
+                f"{int(datetime.datetime.now().timestamp() * 1000)}-calcite",
+            ),
+            file_name_suffix=".out",
+        )
+    )
+
+    ## zeta sql output
+    (
+        transformed
+        | "Count per minute via Zeta" >> SqlTransform(zeta_query, dialect="zetasql")
+        | "To Dict via Zeta" >> beam.Map(lambda e: e._asdict())
+        | "Write to file via Zeta"
+        >> beam.io.WriteToText(
+            file_path_prefix=os.path.join(
+                PARENT_DIR,
+                "outputs",
+                f"{int(datetime.datetime.now().timestamp() * 1000)}-zeta",
             ),
             file_name_suffix=".out",
         )
