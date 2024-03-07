@@ -7,7 +7,6 @@ import typing
 
 import apache_beam as beam
 from apache_beam.io import kafka
-from apache_beam.transforms.combiners import CountCombineFn
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.pipeline_options import SetupOptions
 
@@ -30,6 +29,19 @@ class EventLog(typing.NamedTuple):
 beam.coders.registry.register_coder(EventLog, beam.coders.RowCoder)
 
 
+def decode_message(kafka_kv: tuple):
+    # Incoming Kafka records must have a key associated.
+    # Otherwise, Beam throws an exception with null keys.
+    #   Example: (b'key', b'value')
+    return kafka_kv[1].decode("utf-8")
+
+
+def create_message(element: dict):
+    key = {"event_id": element["id"], "window_start": element["window_start"]}
+    print(element)
+    return json.dumps(key).encode("utf-8"), json.dumps(element).encode("utf-8")
+
+
 def parse_json(element: str):
     row = json.loads(element)
     # lat/lng sometimes empty string
@@ -46,13 +58,14 @@ def add_timestamp(element: EventLog):
 
 
 class AddWindowTS(beam.DoFn):
-    def process(self, element: int, window=beam.DoFn.WindowParam):
+    def process(self, element: tuple, window=beam.DoFn.WindowParam):
         window_start = window.start.to_utc_datetime().isoformat(timespec="seconds")
         window_end = window.end.to_utc_datetime().isoformat(timespec="seconds")
         output = {
+            "id": element[0],
             "window_start": window_start,
             "window_end": window_end,
-            "page_views": element,
+            "page_views": element[1],
         }
         yield output
 
@@ -62,20 +75,13 @@ def run():
         description="Process statistics by minute from website visit event"
     )
     parser.add_argument(
-        "--inputs",
-        default="inputs",
-        help="Specify folder name that event records are saved",
-    )
-    parser.add_argument(
-        "--runner", default="DirectRunner", help="Specify Apache Beam Runner"
+        "--runner", default="FlinkRunner", help="Specify Apache Beam Runner"
     )
     opts = parser.parse_args()
-    PARENT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
     pipeline_opts = {
         "runner": opts.runner,
-        "flink_master": "localhost:8081",
-        "job_name": "traffic-aggregation",
+        "job_name": "traffic-agg",
         "environment_type": "LOOPBACK",
         "streaming": True,
         "parallelism": 3,
@@ -91,37 +97,43 @@ def run():
     p = beam.Pipeline(options=options)
     (
         p
-        | "Read messages"
+        | "Read from Kafka"
         >> kafka.ReadFromKafka(
             consumer_config={
                 "bootstrap.servers": os.getenv(
-                    "BOOTSTRAP_SERVERS", "host.docker.internal:29092"
+                    "BOOTSTRAP_SERVERS",
+                    "host.docker.internal:29092",
                 ),
+                "auto.offset.reset": "earliest",
+                # "enable.auto.commit": "true",
                 "group.id": "traffic-agg",
             },
             topics=["website-visit"],
         )
+        | "Decode messages" >> beam.Map(decode_message)
         | "Parse elements" >> beam.Map(parse_json).with_output_types(EventLog)
-        # | "Add event timestamp" >> beam.Map(add_timestamp)
-        # | "Tumble window per minute" >> beam.WindowInto(beam.window.FixedWindows(60))
-        # | "Count per minute"
-        # >> beam.CombineGlobally(CountCombineFn()).without_defaults()
-        # | "Add window timestamp" >> beam.ParDo(AddWindowTS())
-        # | "Write to file"
-        # >> beam.io.WriteToText(
-        #     file_path_prefix=os.path.join(
-        #         PARENT_DIR,
-        #         "outputs",
-        #         f"{int(datetime.datetime.now().timestamp() * 1000)}",
-        #     ),
-        #     file_name_suffix=".out",
-        # )
+        | "Form key value pair" >> beam.Map(lambda e: (e.id, 1))
+        | "Tumble window per minute" >> beam.WindowInto(beam.window.FixedWindows(20))
+        | "Sum by key" >> beam.CombinePerKey(sum)
+        | "Add window timestamp" >> beam.ParDo(AddWindowTS())
+        | "Create messages"
+        >> beam.Map(create_message).with_output_types(typing.Tuple[bytes, bytes])
+        | "Write to Kafka"
+        >> kafka.WriteToKafka(
+            producer_config={
+                "bootstrap.servers": os.getenv(
+                    "BOOTSTRAP_SERVERS",
+                    "host.docker.internal:29092",
+                )
+            },
+            topic="traffic-agg",
+        )
     )
 
-    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger().setLevel(logging.WARN)
     logging.info("Building pipeline ...")
 
-    p.run()
+    p.run().wait_until_finish()
 
 
 if __name__ == "__main__":

@@ -100,7 +100,7 @@ def run():
             file_pattern=os.path.join(os.path.join(PARENT_DIR, "inputs", "*.out"))
         )
         | "Parse elements" >> beam.Map(parse_json).with_output_types(EventLog)
-        | "Select timestamp" >> beam.Map(format_timestamp).with_output_types(EventLog)
+        | "Format timestamp" >> beam.Map(format_timestamp).with_output_types(EventLog)
     )
 
     ## calcite sql output

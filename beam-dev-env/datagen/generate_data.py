@@ -133,7 +133,9 @@ class EventGenerator:
         """
         try:
             self.kafka_producer.send(
-                self.topic_name, key={"event_id": event["id"]}, value=event
+                self.topic_name,
+                key={"event_id": event["id"], "event_ts": event["event_ts"]},
+                value=event,
             )
             self.kafka_producer.flush()
         except Exception as e:
