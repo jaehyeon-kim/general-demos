@@ -4,3 +4,4 @@ jupyterlab==4.1.2
 jupyterlab-code-formatter
 black
 isort
+ipdb
