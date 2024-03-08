@@ -101,7 +101,10 @@ def run():
     logging.getLogger().setLevel(logging.INFO)
     logging.info("Building pipeline ...")
 
-    p.run()
+    if opts.runner != "FlinkRunner":
+        p.run()
+    else:
+        p.run().wait_until_finish()
 
 
 if __name__ == "__main__":

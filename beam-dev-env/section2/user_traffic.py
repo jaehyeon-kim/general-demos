@@ -6,7 +6,6 @@ import logging
 import typing
 
 import apache_beam as beam
-from apache_beam.transforms.combiners import CountCombineFn
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.pipeline_options import StandardOptions
 
@@ -26,7 +25,16 @@ class EventLog(typing.NamedTuple):
     event_ts: int
 
 
+class UserTraffic(typing.NamedTuple):
+    id: str
+    page_views: int
+    total_bytes: int
+    max_bytes: int
+    min_bytes: int
+
+
 beam.coders.registry.register_coder(EventLog, beam.coders.RowCoder)
+beam.coders.registry.register_coder(UserTraffic, beam.coders.RowCoder)
 
 
 def parse_json(element: str):
@@ -35,6 +43,18 @@ def parse_json(element: str):
     if not row["lat"] or not row["lng"]:
         row = {**row, **{"lat": -1, "lng": -1}}
     return EventLog(**row)
+
+
+class Aggregate(beam.DoFn):
+    def process(self, element: typing.Tuple[str, typing.Iterable[int]]):
+        key, values = element
+        yield UserTraffic(
+            id=key,
+            page_views=len(values),
+            total_bytes=sum(values),
+            max_bytes=max(values),
+            min_bytes=min(values),
+        )
 
 
 def run():
@@ -63,13 +83,10 @@ def run():
             file_pattern=os.path.join(PARENT_DIR, opts.inputs, "*.out")
         )
         | "Parse elements" >> beam.Map(parse_json).with_output_types(EventLog)
-        | "Aggregate by user"
-        >> beam.GroupBy("id")
-        .aggregate_field("id", CountCombineFn(), "page_views")
-        .aggregate_field("file_size_bytes", sum, "total_bytes")
-        .aggregate_field("file_size_bytes", max, "max_bytes")
-        .aggregate_field("file_size_bytes", min, "min_bytes")
-        | "To Dict" >> beam.Map(lambda e: e._asdict())
+        | "Form key value pair" >> beam.Map(lambda e: (e.id, e.file_size_bytes))
+        | "Group by key" >> beam.GroupByKey()
+        | "Aggregate by id" >> beam.ParDo(Aggregate()).with_output_types(UserTraffic)
+        | "To dict" >> beam.Map(lambda e: e._asdict())
         | "Write to file"
         >> beam.io.WriteToText(
             file_path_prefix=os.path.join(
@@ -81,10 +98,13 @@ def run():
         )
     )
 
-    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger().setLevel(logging.DEBUG)
     logging.info("Building pipeline ...")
 
-    p.run()
+    if opts.runner != "FlinkRunner":
+        p.run()
+    else:
+        p.run().wait_until_finish()
 
 
 if __name__ == "__main__":
