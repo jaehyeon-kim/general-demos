@@ -57,6 +57,11 @@ def run():
     parser.add_argument(
         "--runner", default="FlinkRunner", help="Specify Apache Beam Runner"
     )
+    parser.add_argument(
+        "--use_own",
+        action="store_true",
+        default="Flag to indicate whether to use a own local cluster",
+    )
     opts = parser.parse_args()
 
     pipeline_opts = {
@@ -70,6 +75,9 @@ def run():
         ],  ## https://github.com/apache/beam/issues/20979
         "checkpointing_interval": "60000",
     }
+    if opts.use_own is True:
+        pipeline_opts = {**pipeline_opts, **{"flink_master": "localhost:8081"}}
+    print(pipeline_opts)
     options = PipelineOptions([], **pipeline_opts)
     # Required, else it will complain that when importing worker functions
     options.view_as(SetupOptions).save_main_session = True

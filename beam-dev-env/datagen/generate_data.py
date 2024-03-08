@@ -184,7 +184,7 @@ if __name__ == "__main__":
     Batch example:
         python datagen/generate_data.py --source batch --num_users 20 --num_events 10000 --max_lag_seconds 60
     Streaming example:
-        python datagen/generate_data.py --source streaming --num_users 20 --num_events 100 --max_lag_seconds 10 --delay_seconds 1
+        python datagen/generate_data.py --source streaming --num_users 5 --delay_seconds 0.5
     """
     parser = argparse.ArgumentParser(__file__, description="Web Server Data Generator")
     parser.add_argument(
