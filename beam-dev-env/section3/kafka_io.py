@@ -60,7 +60,7 @@ def run():
     parser.add_argument(
         "--use_own",
         action="store_true",
-        default="Flag to indicate whether to use a own local cluster",
+        default="Flag to indicate whether to use an own local cluster",
     )
     opts = parser.parse_args()
 
