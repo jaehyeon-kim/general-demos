@@ -145,7 +145,7 @@ def run():
         )
     )
 
-    logging.getLogger().setLevel(logging.WARN)
+    logging.getLogger().setLevel(logging.INFO)
     logging.info("Building pipeline ...")
 
     p.run().wait_until_finish()

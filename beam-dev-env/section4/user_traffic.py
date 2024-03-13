@@ -98,7 +98,7 @@ def run():
         )
     )
 
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(logging.INFO)
     logging.info("Building pipeline ...")
 
     if opts.runner != "FlinkRunner":
