@@ -23,9 +23,7 @@ def convert_to_item(row: list):
 
 
 def run():
-    parser = argparse.ArgumentParser(
-        description="Process statistics by user from website visit event"
-    )
+    parser = argparse.ArgumentParser(description="Beam pipeline arguments")
     parser.add_argument(
         "--runner", default="FlinkRunner", help="Specify Apache Beam Runner"
     )

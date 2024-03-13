@@ -10,7 +10,7 @@ from apache_beam.options.pipeline_options import StandardOptions
 
 
 def run():
-    parser = argparse.ArgumentParser(description="Process website visit event")
+    parser = argparse.ArgumentParser(description="Beam pipeline arguments")
     parser.add_argument(
         "--inputs",
         default="inputs",

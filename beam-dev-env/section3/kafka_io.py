@@ -51,9 +51,7 @@ def parse_json(element: str):
 
 
 def run():
-    parser = argparse.ArgumentParser(
-        description="Process statistics by minute from website visit event"
-    )
+    parser = argparse.ArgumentParser(description="Beam pipeline arguments")
     parser.add_argument(
         "--runner", default="FlinkRunner", help="Specify Apache Beam Runner"
     )

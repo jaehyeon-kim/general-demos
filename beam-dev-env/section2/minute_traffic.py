@@ -57,9 +57,7 @@ class AddWindowTS(beam.DoFn):
 
 
 def run():
-    parser = argparse.ArgumentParser(
-        description="Process statistics by minute from website visit event"
-    )
+    parser = argparse.ArgumentParser(description="Beam pipeline arguments")
     parser.add_argument(
         "--inputs",
         default="inputs",
