@@ -6,7 +6,6 @@ import apache_beam as beam
 from apache_beam.testing.test_pipeline import TestPipeline
 from apache_beam.testing.util import assert_that, equal_to
 from apache_beam.testing.test_stream import TestStream
-from apache_beam.transforms.window import TimestampedValue
 from apache_beam.options.pipeline_options import PipelineOptions, StandardOptions
 
 from traffic_agg import EventLog, parse_json, assign_timestamp
@@ -38,13 +37,7 @@ class TrafficWindowingTest(unittest.TestCase):
             test_stream = (
                 TestStream()
                 .advance_watermark_to(0)
-                .add_elements(
-                    [
-                        TimestampedValue(EVENTS[0], self.get_ts(EVENTS[0])),
-                        TimestampedValue(EVENTS[1], self.get_ts(EVENTS[1])),
-                        TimestampedValue(EVENTS[2], self.get_ts(EVENTS[2])),
-                    ]
-                )
+                .add_elements([EVENTS[0], EVENTS[1], EVENTS[2]])
                 .advance_watermark_to_infinity()
             )
 
