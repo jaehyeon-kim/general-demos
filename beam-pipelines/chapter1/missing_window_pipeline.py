@@ -41,6 +41,7 @@ def run():
     now = int(datetime.datetime.now().timestamp() * 1000)
     test_stream = (
         TestStream(coder=coders.StrUtf8Coder())
+        .with_output_types(str)
         .add_elements(
             [TimestampedValue(lines[i], now + 1000) for i in range(len(lines))]
         )

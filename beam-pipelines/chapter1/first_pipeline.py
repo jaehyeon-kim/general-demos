@@ -1,4 +1,5 @@
 import os
+import datetime
 import argparse
 import logging
 import re
@@ -41,7 +42,16 @@ def run():
         | "to string" >> beam.ToString.Iterables()
         | "Extract words" >> beam.FlatMap(tokenize)
         | "Count per word" >> beam.combiners.Count.PerElement()
-        | beam.Map(print)
+        # | beam.Map(print)
+        | "Write to file"
+        >> beam.io.WriteToText(
+            file_path_prefix=os.path.join(
+                PARENT_DIR,
+                "outputs",
+                f"{opts.runner.lower()}-{int(datetime.datetime.now().timestamp() * 1000)}",
+            ),
+            file_name_suffix=".out",
+        )
     )
 
     logging.getLogger().setLevel(logging.INFO)

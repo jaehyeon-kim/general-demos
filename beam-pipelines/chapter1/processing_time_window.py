@@ -7,7 +7,7 @@ import re
 import apache_beam as beam
 from apache_beam.coders import coders
 from apache_beam.transforms import window
-from apache_beam.transforms.trigger import AfterWatermark, AccumulationMode
+from apache_beam.transforms.trigger import AccumulationMode
 from apache_beam.testing.test_stream import TestStream
 from apache_beam.transforms.window import TimestampedValue
 from apache_beam.options.pipeline_options import PipelineOptions
@@ -16,7 +16,8 @@ from apache_beam.options.pipeline_options import StandardOptions
 
 def read_file(filename: str, inputpath: str):
     with open(os.path.join(inputpath, filename), "r") as f:
-        return f.readlines()
+        lines = f.readlines()
+        return [(i, lines[i]) for i in range(len(lines))]
 
 
 def tokenize(element: str):
@@ -45,7 +46,10 @@ def run():
         TestStream(coder=coders.StrUtf8Coder())
         .with_output_types(str)
         .add_elements(
-            [TimestampedValue(lines[i], now + 1000) for i in range(len(lines))]
+            [
+                TimestampedValue(lines[i][1], now if lines[i][0] == 0 else now + 1000)
+                for i in range(len(lines))
+            ]
         )
         .advance_watermark_to_infinity()
     )
@@ -56,23 +60,13 @@ def run():
         | "Read stream" >> test_stream
         | "Windowing"
         >> beam.WindowInto(
-            window.GlobalWindows(),
-            trigger=AfterWatermark(),
+            window.FixedWindows(1),
             accumulation_mode=AccumulationMode.DISCARDING,
         )
         | "Extract words" >> beam.FlatMap(tokenize)
-        | "Count per word" >> beam.combiners.Count.PerElement()
+        | "Conver to tuple" >> beam.Map(lambda e: ("w", 1))
+        | "Count words" >> beam.CombinePerKey(sum)
         | beam.Map(print)
-        ## ValueError: GroupByKey cannot be applied to an unbounded PCollection with global windowing and a default trigger
-        # | "Write to file"
-        # >> beam.io.WriteToText(
-        #     file_path_prefix=os.path.join(
-        #         PARENT_DIR,
-        #         "outputs",
-        #         f"{opts.runner.lower()}-{int(datetime.datetime.now().timestamp() * 1000)}",
-        #     ),
-        #     file_name_suffix=".out",
-        # )
     )
 
     logging.getLogger().setLevel(logging.INFO)
