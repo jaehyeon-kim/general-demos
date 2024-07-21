@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: tpch_sample
+    database: SNOWFLAKE_SAMPLE_DATA
+    schema: TPCH_SF{{ var('tpch_size', 10) }}
+    tables:
+      - name: CUSTOMER
+      - name: ORDERS
+      - name: NATION
+      - name: REGION
