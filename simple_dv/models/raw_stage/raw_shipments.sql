@@ -5,7 +5,5 @@ SELECT
     , DATEADD(DAY, 5, o.O_ORDERDATE) AS SHIPMENT_DATE
     , TO_NUMBER(RPAD(CONCAT(o.O_ORDERKEY, o.O_CUSTKEY, TO_CHAR(o.O_ORDERDATE, 'YYYYMMDD')),  24, '0')) AS SHIPMENT_NUMBER
     , o.O_TOTALPRICE AS AMOUNT
-FROM {{ source('tpch_sample', 'ORDERS') }} o
-LEFT JOIN {{ source('tpch_sample', 'CUSTOMER') }} c
-ON o.O_CUSTKEY = c.C_CUSTKEY
+FROM {{ source('tpch_sample', 'ORDERS') }} AS o
 WHERE O_ORDERDATE = TO_DATE('{{ var('load_date') }}')
