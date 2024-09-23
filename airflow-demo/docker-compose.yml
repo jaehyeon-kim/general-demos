@@ -1,7 +1,9 @@
 ---
 version: "3"
 x-airflow-common: &airflow-common
-  image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.8.0}
+  image: airflow-demo
+  # image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.8.0}
+  build: .
   networks:
     - appnet
   environment: &airflow-common-env
@@ -13,15 +15,12 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth"
-    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:- pendulum}
+    # _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:- pendulum}
     TZ: Australia/Sydney
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - ./airflow/plugins:/opt/airflow/plugins
     - ./airflow/logs:/opt/airflow/logs
-    - ./pizza_shop:/tmp/pizza_shop
-    - ./sa_key:/tmp/sa_key
-    - ./airflow/dbt-profiles:/opt/airflow/dbt-profiles
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on: &airflow-common-depends-on
     postgres:
