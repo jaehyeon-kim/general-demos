@@ -8,7 +8,7 @@ from clean_data import clean_data
 
 # Define or Instantiate DAG
 dag = DAG(
-    "exchange_rate_etl",
+    "s20_exchange_rate_pipeline",
     start_date=datetime(2023, 10, 1),
     # end_date=datetime(2023, 12, 31),
     schedule_interval="0 22 * * *",

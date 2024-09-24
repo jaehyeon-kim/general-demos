@@ -7,7 +7,7 @@ from airflow.providers.postgres.operators.postgres import PostgresOperator
 from utils import echo
 
 dag = DAG(
-    "load_dags",
+    "s31_connection_variable_example",
     default_args={"start_date": days_ago(1)},
     schedule_interval="0 21 * * *",
     catchup=False,

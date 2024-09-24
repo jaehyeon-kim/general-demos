@@ -16,7 +16,7 @@ def wait_for():
 
 
 dag = DAG(
-    "wait_for_x_seconds",
+    "s40_sensor_example",
     default_args={"start_date": days_ago(1)},
     schedule_interval="0 23 * * *",
     catchup=False,

@@ -7,7 +7,7 @@ from airflow.utils.dates import days_ago
 from utils import echo
 
 dag = DAG(
-    "live_exchange_rates",
+    "s30_varaible_example",
     default_args={"start_date": days_ago(1)},
     schedule_interval="0 21 * * *",
     catchup=False,

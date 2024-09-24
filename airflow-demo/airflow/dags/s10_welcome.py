@@ -17,7 +17,7 @@ def print_goodbye():
 
 
 dag = DAG(
-    "welcome_dag",
+    "s10_welcome",
     default_args={"start_date": days_ago(1)},
     schedule_interval="0 23 * * *",
     catchup=False,

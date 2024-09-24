@@ -8,7 +8,7 @@ from airflow.operators.python import PythonOperator
 from utils import echo
 
 dag1 = DAG(
-    "time_delta_sensor",
+    "s50_deferrable_example_sync",
     default_args={"start_date": days_ago(1)},
     schedule_interval="0 23 * * *",
     catchup=False,
@@ -33,7 +33,7 @@ send_email_task = PythonOperator(
 wait_for_x_seconds >> send_email_task
 
 dag2 = DAG(
-    "time_delta_sensor_async",
+    "s50_deferrable_example_async",
     default_args={"start_date": days_ago(1)},
     schedule_interval="0 23 * * *",
     catchup=False,

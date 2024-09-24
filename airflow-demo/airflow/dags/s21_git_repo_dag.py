@@ -7,7 +7,7 @@ from airflow.operators.empty import EmptyOperator
 
 # Define the DAG
 dag = DAG(
-    "git_repo_dag",
+    "s21_git_repo_dag",
     default_args={"start_date": days_ago(1)},
     schedule_interval="0 21 * * *",
     catchup=False,
