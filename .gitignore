@@ -8,6 +8,7 @@ kpow.env
 pyspark-data-analysis/apps/data
 pyspark-data-analysis/apps/spark/code
 **/airflow/logs
+*.db
 
 ## sam
 .aws-sam*
