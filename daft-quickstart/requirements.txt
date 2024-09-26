@@ -1,1 +1,2 @@
 getdaft[sql]
+psycopg2-binary

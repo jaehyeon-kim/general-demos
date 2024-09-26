@@ -1,40 +1,52 @@
 import daft
-from sqlalchemy import create_engine
-from daft import context
-from daft.sql.sql_scan import SQLScanOperator
-from daft.daft import PythonStorageConfig, StorageConfig
+from utils import QueryBuilder, create_connection
 
-
-def create_connection():
-    return create_engine("sqlite:///example.db", echo=True).connect()
-
-
-df = daft.read_sql("SELECT * FROM books", "sqlite://example.db")
-
-df = daft.read_sql("SELECT *, ROW_NUMBER () OVER() AS rn FROM books", create_connection)
-
-
-df = daft.read_sql(
-    sql="SELECT *, ROW_NUMBER () OVER() AS rn FROM books",
-    conn=create_connection,
-    partition_col="rn",
-    num_partitions=3,
+### 1. join tables
+JOIN_STMT = """
+WITH cte_orders_expanded AS (
+    SELECT id, user_id, jsonb_array_elements(items) AS order_item
+    FROM staging.orders
+), cte_orders_processed AS (
+    SELECT 
+        id AS order_id
+        , user_id
+        , jsonb_extract_path(order_item, 'product_id')::int AS product_id
+        , jsonb_extract_path(order_item, 'quantity')::int AS quantity
+    FROM cte_orders_expanded
 )
+SELECT
+    order_id
+    , o.user_id
+    , u.first_name
+    , u.last_name
+    , o.product_id
+    , p.name
+    , o.quantity
+    , p.price
+FROM cte_orders_processed o
+JOIN staging.users u ON o.user_id = u.id
+JOIN staging.products p ON o.product_id = p.id
+"""
 
-stmt = "SELECT *, ROW_NUMBER () OVER() AS rn FROM books"
+df = daft.read_sql(sql=JOIN_STMT, conn=create_connection)
+df.show(100)
 
-io_config = context.get_context().daft_planning_config.default_io_config
-storage_config = StorageConfig.python(PythonStorageConfig(io_config))
+### 2. parallel processing
+USER_STMT = "SELECT * FROM staging.users LIMIT 7700"
 
-
-sql_op = SQLScanOperator(
-    sql=stmt,
+builder = QueryBuilder(
+    sql=USER_STMT,
     conn=create_connection,
-    storage_config=storage_config,
     disable_pushdowns_to_sql=False,
     infer_schema=False,
     infer_schema_length=10,
     schema=None,
-    partition_col="rn",
-    num_partitions=3,
+    projection=None,
+    predicate=None,
+    limit=None,
+    partition_col="id",
+    num_partitions=7,
 )
+
+for stmt in builder.build_query_stmts():
+    print(stmt)
