@@ -1,4 +1,5 @@
 import daft
+import daft.context
 from utils import QueryBuilder, create_connection
 
 #### 1. basic examples
@@ -90,3 +91,20 @@ builder = QueryBuilder(
 
 for stmt in builder.build_query_stmts():
     print(stmt)
+
+## note
+from daft import context
+
+USER_STMT = "SELECT id, first_name, last_name, email FROM staging.users"
+
+df = daft.read_sql(
+    sql=USER_STMT, conn=create_connection, partition_col="id", num_partitions=9
+)
+
+df.explain(show_all=True)
+
+logical_plan_builder = df._builder
+physical_plan_scheduler = logical_plan_builder.to_physical_plan_scheduler(
+    daft.context.get_context().daft_execution_config
+)
+physical_plan_scheduler
