@@ -93,8 +93,6 @@ for stmt in builder.build_query_stmts():
     print(stmt)
 
 ## note
-from daft import context
-
 USER_STMT = "SELECT id, first_name, last_name, email FROM staging.users"
 
 df = daft.read_sql(
