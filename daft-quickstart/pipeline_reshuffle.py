@@ -4,6 +4,7 @@ import typing
 import time
 
 import apache_beam as beam
+from apache_beam.transforms.util import Reshuffle
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.pipeline_options import SetupOptions
 from apache_beam import RestrictionProvider
@@ -11,7 +12,7 @@ from apache_beam.io.restriction_trackers import OffsetRange, OffsetRestrictionTr
 
 
 class GenerateQueryFn(beam.DoFn):
-    def process(self, element: typing.Any):
+    def process(self, _: typing.Any):
         for query in self._generate_queries(None):
             yield query
 
@@ -50,10 +51,10 @@ class ProcessQueryFn(beam.DoFn, RestrictionProvider):
     def create_tracker(self, restriction: OffsetRange) -> OffsetRestrictionTracker:
         return OffsetRestrictionTracker(restriction)
 
-    def initial_restriction(self, element: str) -> OffsetRange:
+    def initial_restriction(self, _: str) -> OffsetRange:
         return OffsetRange(start=0, stop=1)
 
-    def restriction_size(self, element: str, restriction: OffsetRange) -> int:
+    def restriction_size(self, _: str, restriction: OffsetRange) -> int:
         return restriction.size()
 
 
@@ -73,6 +74,7 @@ def run(argv=None, save_main_session=True):
             p
             | beam.Create([0])
             | beam.ParDo(GenerateQueryFn())
+            | Reshuffle()
             | beam.ParDo(ProcessQueryFn())
         )
 
@@ -82,9 +84,9 @@ def run(argv=None, save_main_session=True):
 
 if __name__ == "__main__":
     """
-    python pipeline.py --direct_num_workers=3 --direct_running_mode=multi_threading
+    python pipeline_reshuffle.py --direct_num_workers=3 --direct_running_mode=multi_threading
 
-    python pipeline.py --job_name=sql-query --runner FlinkRunner \
+    python pipeline_reshuffle.py --job_name=sql-query --runner FlinkRunner \
         --flink_master=localhost:8081 --environment_type=LOOPBACK --parallelism=3
     """
     run()
