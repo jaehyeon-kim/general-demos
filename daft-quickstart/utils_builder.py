@@ -1,5 +1,5 @@
 from typing import Callable, Union, List
-from sqlalchemy import Connection, create_engine
+from sqlalchemy import Connection
 from daft import context
 from daft.datatype import DataType
 from daft.sql.sql_scan import SQLScanOperator
@@ -8,12 +8,6 @@ from daft.daft import (
     StorageConfig,
 )
 from daft.sql.sql_connection import SQLConnection
-
-
-def create_connection():
-    return create_engine(
-        "postgresql+psycopg2://devuser:password@localhost/devdb", echo=True
-    ).connect()
 
 
 class QueryBuilder:
@@ -25,9 +19,6 @@ class QueryBuilder:
         infer_schema: bool,
         infer_schema_length: int,
         schema: dict[str, DataType] | None,
-        projection: List[str] | None,
-        predicate: str | None = None,
-        limit: int | None = None,
         partition_col: str | None = None,
         num_partitions: int | None = None,
     ) -> None:
@@ -37,9 +28,9 @@ class QueryBuilder:
         self.infer_schema = infer_schema
         self.infer_schema_length = infer_schema_length
         self.schema = schema
-        self.projection = projection
-        self.predicate = predicate
-        self.limit = limit
+        self.projection = None  # projection
+        self.predicate = None  # predicate
+        self.limit = None  # limit
         self.partition_col = partition_col
         self.num_partitions = num_partitions
         self.sql_conn = self._set_sql_conn()
@@ -72,6 +63,7 @@ class QueryBuilder:
         partition_bounds, _ = self.sql_operator._get_partition_bounds_and_strategy(
             num_scan_tasks=self.num_partitions
         )
+        partition_bounds = [int(p) for p in partition_bounds]
         partition_tuples = list(zip(partition_bounds[::1], partition_bounds[1::1]))
         for i, tup in enumerate(partition_tuples):
             left_clause = f"{self.partition_col} >= {tup[0]}"

@@ -1,9 +1,11 @@
 from typing import Union, Callable
-from sqlalchemy import Connection, create_engine
+from sqlalchemy import Connection
 
-from daft.daft import PyExpr, Pushdowns
+from daft.daft import Pushdowns
 from daft.datatype import DataType
-from utils import QueryBuilder, create_connection
+
+from utils_db import create_postgres
+from utils_builder import QueryBuilder
 
 
 class MySQLScanOperator:
@@ -24,7 +26,7 @@ class MySQLScanOperator:
 USER_STMT = "SELECT * FROM staging.users LIMIT 7700"
 builder = QueryBuilder(
     sql=USER_STMT,
-    conn=create_connection,
+    conn=create_postgres,
     disable_pushdowns_to_sql=False,
     infer_schema=False,
     infer_schema_length=10,

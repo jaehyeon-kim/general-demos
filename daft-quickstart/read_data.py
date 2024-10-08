@@ -1,24 +1,25 @@
 import daft
 import daft.context
-from utils import QueryBuilder, create_connection
+from utils_db import create_postgres
+from utils_builder import QueryBuilder
 
 #### 1. basic examples
 USER_STMT = "SELECT id, first_name, last_name, email FROM staging.users"
 
 ## lasy evaluation
-df = daft.read_sql(sql=USER_STMT, conn=create_connection)
+df = daft.read_sql(sql=USER_STMT, conn=create_postgres)
 df.show(1300)
 
 ## parallel reads - numeric or temporal type
 df = daft.read_sql(
-    sql=USER_STMT, conn=create_connection, partition_col="id", num_partitions=9
+    sql=USER_STMT, conn=create_postgres, partition_col="id", num_partitions=9
 )
 df.show(2347)
 
 # create on the fly
 df = daft.read_sql(
     sql="SELECT first_name, last_name, email, row_number() over() AS rn FROM staging.users",
-    conn=create_connection,
+    conn=create_postgres,
     partition_col="rn",
     num_partitions=9,
 )
@@ -51,14 +52,14 @@ JOIN staging.users u ON o.user_id = u.id
 JOIN staging.products p ON o.product_id = p.id
 """
 
-df = daft.read_sql(sql=JOIN_STMT, conn=create_connection)
+df = daft.read_sql(sql=JOIN_STMT, conn=create_postgres)
 df.show(1500)
 
 #### 3. parallel processing idea
 USER_STMT = "SELECT * FROM staging.users LIMIT 7700"
 builder = QueryBuilder(
     sql=USER_STMT,
-    conn=create_connection,
+    conn=create_postgres,
     disable_pushdowns_to_sql=False,
     infer_schema=False,
     infer_schema_length=10,
@@ -77,7 +78,7 @@ for stmt in builder.build_query_stmts():
 USER_STMT = "SELECT * FROM staging.users"
 builder = QueryBuilder(
     sql=USER_STMT,
-    conn=create_connection,
+    conn=create_postgres,
     disable_pushdowns_to_sql=False,
     infer_schema=False,
     infer_schema_length=10,
@@ -96,7 +97,7 @@ for stmt in builder.build_query_stmts():
 USER_STMT = "SELECT id, first_name, last_name, email FROM staging.users"
 
 df = daft.read_sql(
-    sql=USER_STMT, conn=create_connection, partition_col="id", num_partitions=9
+    sql=USER_STMT, conn=create_postgres, partition_col="id", num_partitions=9
 )
 
 df.explain(show_all=True)
