@@ -9,21 +9,20 @@ SCHEMA = {
 }
 
 df = daft.read_sql(
-    sql="SELECT * FROM example",
+    sql="SELECT id, name, num, ROW_NUMBER() OVER() AS rn FROM example LIMIT 770",
     conn=create_sqlite,
-    partition_col="id",
-    num_partitions=9,
-    infer_schema=False,
-    schema=SCHEMA,
+    partition_col="rn",
+    num_partitions=7,
+    infer_schema=True,
 )
-df.show(123)
+df.show(776)
 
 df = daft.read_sql(
-    sql="SELECT * FROM example",
+    sql="SELECT id, name, num, ROW_NUMBER() OVER() AS rn FROM example LIMIT 770",
     conn=create_sqlite,
-    partition_col="created_at",
-    num_partitions=9,
-    infer_schema=False,
-    schema=SCHEMA,
+    partition_col="id",
+    num_partitions=7,
+    infer_schema=True,
+    # schema=SCHEMA,
 )
-df.show(123)
+df.show(776)

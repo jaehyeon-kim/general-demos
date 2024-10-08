@@ -1,4 +1,4 @@
-from typing import Callable, Union, List
+from typing import Callable, Union
 from sqlalchemy import Connection
 from daft import context
 from daft.datatype import DataType
