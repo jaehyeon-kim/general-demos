@@ -7,12 +7,11 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ./initdb/scripts:/docker-entrypoint-initdb.d
-      - ./initdb/data:/tmp
+      # - ./initdb/scripts:/docker-entrypoint-initdb.d
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=devdb
-      - POSTGRES_USER=devuser
+      - POSTGRES_DB=develop
+      - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - TZ=Australia/Sydney
 

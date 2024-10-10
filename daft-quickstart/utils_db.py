@@ -1,15 +1,24 @@
+import os
 import random
 import string
 from datetime import date, timedelta
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, Connection
+
+
+def set_conn_str(engine: str, db_name: str):
+    if engine == "postgres":
+        return f"postgresql+psycopg2://user:password@localhost/{db_name}"
+    elif engine == "sqlite":
+        return "sqlite://" if db_name is None else f"sqlite:///{db_name}.db"
+    else:
+        raise RuntimeError(f"Not supported engine - {engine}, only postgres or sqlite")
 
 
 def generate_df(num_rec: int = 100):
     random.seed(1237)
     d = {
-        "id": range(num_rec),
-        "num": random.randint(1, 100),
+        "val": [random.randint(1, 20) for _ in range(num_rec)],
         "name": [
             "".join(random.choices(string.ascii_lowercase, k=5)) for _ in range(num_rec)
         ],
@@ -21,33 +30,31 @@ def generate_df(num_rec: int = 100):
     return pd.DataFrame(d)
 
 
-def create_postgres():
-    return create_engine(
-        "postgresql+psycopg2://devuser:password@localhost/devdb", echo=True
-    ).connect()
+def create_postgres(db_name: str = "develop", echo: bool = True):
+    return create_engine(set_conn_str("postgres", db_name), echo=echo).connect()
 
 
-def create_sqlite(db_name: str = "example", echo: bool = True):
-    return create_engine(
-        "sqlite://" if db_name is None else f"sqlite:///{db_name}.db", echo=echo
-    ).connect()
+def create_sqlite(db_name: str = "develop", echo: bool = True):
+    return create_engine(set_conn_str("sqlite", db_name), echo=echo).connect()
 
 
-def insert_to_sqlite(
+def insert_to_db(
     df: pd.DataFrame,
-    tbl_name: str = "example",
-    db_name: str = "example",
-    echo: bool = True,
+    tbl_name: str,
+    conn: Connection,
     if_exists: str = "replace",
 ):
-    con_str = "sqlite://" if db_name is None else f"sqlite:///{db_name}.db"
     df.to_sql(
         name=tbl_name,
-        con=create_engine(con_str, echo=echo),
+        con=conn,
+        index=True,
         if_exists=if_exists,
     )
 
 
 if __name__ == "__main__":
+    engine = os.getenv("ENGINE", "sqlite")
+    db_name = "develop"
+    conn = create_postgres(db_name) if engine == "postgres" else create_sqlite(db_name)
     df = generate_df(1000)
-    insert_to_sqlite(df)
+    insert_to_db(df, tbl_name="demo", conn=conn, if_exists="replace")
