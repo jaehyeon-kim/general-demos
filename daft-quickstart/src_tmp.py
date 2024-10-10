@@ -3,25 +3,39 @@ from sqlalchemy import Connection
 
 from daft.daft import Pushdowns
 from daft.datatype import DataType
+from daft.table import Table
 
-from utils_db import create_postgres
 from utils_builder import QueryBuilder
+from utils_db import create_sqlite, create_postgres
 
+engine = "sqlite"
+db_name = "develop"
+conn_fn = create_postgres if engine == "postgres" else create_sqlite
 
-class MySQLScanOperator:
-    def __init__(
-        self,
-        sql: str,
-        conn: Union[Callable[[], "Connection"], str],
-        disable_pushdowns_to_sql: bool,
-        infer_schema: bool,
-        infer_schema_length: int,
-        schema: dict[str, DataType] | None,
-        partition_col: str | None = None,
-        num_partitions: int | None = None,
-    ) -> None:
-        pass
+SCHEMA = {
+    "id": DataType.int64(),
+    "val": DataType.int64(),
+    "name": DataType.string(),
+    "created_at": DataType.date(),
+}
 
+my_builder = QueryBuilder(
+    sql="SELECT * FROM demo LIMIT 770",
+    conn=lambda: conn_fn(db_name),
+    disable_pushdowns_to_sql=False,
+    infer_schema=False,
+    infer_schema_length=10,
+    schema=SCHEMA,
+    partition_col="created_at",
+    num_partitions=7,
+)
+sql_op = my_builder.sql_operator
+
+num_scan_tasks = 7
+sql_op._get_partition_bounds_and_strategy(num_scan_tasks)
+
+pa_table, strategy = sql_op._attempt_partition_bounds_read(num_scan_tasks)
+pydict = Table.from_arrow(pa_table).to_pydict()
 
 USER_STMT = "SELECT * FROM staging.users LIMIT 7700"
 builder = QueryBuilder(

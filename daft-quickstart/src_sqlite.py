@@ -2,13 +2,13 @@ import daft
 from daft import DataType
 from utils_db import create_sqlite, create_postgres
 
-engine = "postgres"
+engine = "sqlite"
 db_name = "develop"
 conn_fn = create_postgres if engine == "postgres" else create_sqlite
 
 SCHEMA = {
-    "index": DataType.int16(),
-    "val": DataType.int16(),
+    "id": DataType.int64(),
+    "val": DataType.int64(),
     "name": DataType.string(),
     "created_at": DataType.date(),
 }
@@ -16,9 +16,9 @@ SCHEMA = {
 df = daft.read_sql(
     sql="SELECT * FROM demo LIMIT 770",
     conn=lambda: conn_fn(db_name),
-    partition_col="index",
+    partition_col="id",
     num_partitions=7,
-    infer_schema=True,
+    schema=SCHEMA,
 )
 df.show(776)
 
@@ -27,7 +27,7 @@ df = daft.read_sql(
     conn=lambda: conn_fn(db_name),
     partition_col="created_at",
     num_partitions=7,
-    infer_schema=True,
+    schema=SCHEMA,
 )
 df.show(776)
 
@@ -36,6 +36,6 @@ df = daft.read_sql(
     conn=lambda: conn_fn(db_name),
     partition_col="val",
     num_partitions=7,
-    infer_schema=True,
+    schema=SCHEMA,
 )
 df.show(776)

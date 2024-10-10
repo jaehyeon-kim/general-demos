@@ -18,6 +18,7 @@ def set_conn_str(engine: str, db_name: str):
 def generate_df(num_rec: int = 100):
     random.seed(1237)
     d = {
+        "id": range(num_rec),
         "val": [random.randint(1, 20) for _ in range(num_rec)],
         "name": [
             "".join(random.choices(string.ascii_lowercase, k=5)) for _ in range(num_rec)
@@ -47,7 +48,7 @@ def insert_to_db(
     df.to_sql(
         name=tbl_name,
         con=conn,
-        index=True,
+        index=False,
         if_exists=if_exists,
     )
 

@@ -1,3 +1,4 @@
 getdaft[all]
 psycopg2-binary
 apache-beam[test]==2.57.0
+litecli
