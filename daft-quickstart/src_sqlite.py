@@ -22,6 +22,10 @@ df = daft.read_sql(
 )
 df.collect()
 df.to_pylist()
+df.iter_rows()
+
+for r in df.iter_rows():
+    print(r)
 
 df = daft.read_sql(
     sql="SELECT * FROM demo LIMIT 770",

@@ -54,7 +54,7 @@ class ProcessQueryFn(beam.DoFn, RestrictionProvider):
                     conn=self._conn_fn(),
                     schema=self.schema,
                 )
-                for item in df.to_pylist():
+                for item in df.iter_rows():
                     yield item
             else:
                 return
