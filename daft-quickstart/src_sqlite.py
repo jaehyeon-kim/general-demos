@@ -20,7 +20,8 @@ df = daft.read_sql(
     num_partitions=7,
     schema=SCHEMA,
 )
-df.show(776)
+df.collect()
+df.to_pylist()
 
 df = daft.read_sql(
     sql="SELECT * FROM demo LIMIT 770",
