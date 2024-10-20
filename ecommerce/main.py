@@ -28,6 +28,7 @@ def write_dynamic_data(conn: Connection, if_exists: bool = "replace"):
         "events": [],
     }
     user = User()
+    logging.info(f"start to create user events - user id: {user.id}")
     tbl_map["users"].extend([user.asdict(["orders"])])
     orders = user.orders
     tbl_map["orders"].extend([o.asdict(["order_items"]) for o in orders])
@@ -51,7 +52,9 @@ def write_dynamic_data(conn: Connection, if_exists: bool = "replace"):
             logging.info(f"{if_exists} records, table - {tbl}, # records - {len(df)}")
             insert_to_db(df=df, tbl_name=tbl, conn=conn, if_exists=if_exists)
         else:
-            logging.info(f"skip writing, table - {tbl}, # records - {len(df)}")
+            logging.info(
+                f"skip records as no user event, table - {tbl}, # records - {len(df)}"
+            )
 
 
 def write_static_data(conn: Connection, if_exists: bool = "replace"):

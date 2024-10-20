@@ -248,7 +248,6 @@ class Event(DataUtil):
     sequence_number: int = dataclasses.field(init=False)
     session_id: str = dataclasses.field(init=False)
     created_at: datetime.datetime = dataclasses.field(init=False)
-    # inventory_item_id:int = field(init=False)
     ip_address: str = dataclasses.field(init=False)
     city: str = dataclasses.field(init=False)
     state: str = dataclasses.field(init=False)
@@ -276,9 +275,6 @@ class Event(DataUtil):
 
     def __str__(self):
         return f"{self.created_at}, {self.ip_address}, {self.city}, {self.state}, {self.postal_code}"
-
-
-# inv_item_id = 0
 
 
 @dataclasses.dataclass
@@ -317,8 +313,6 @@ class OrderItem(DataUtil):
         self.id = fake.uuid4()
         self.order_id = order.order_id
         self.user_id = order.user_id
-        # inv_item_id = inv_item_id + 1
-        # self.inventory_item_id = inv_item_id
         self.inventory_item_id = str(uuid.uuid4())
         self.status = order.status
         self.created_at = order.created_at - datetime.timedelta(
