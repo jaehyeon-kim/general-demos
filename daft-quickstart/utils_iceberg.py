@@ -1,9 +1,53 @@
 import os
+import shutil
 from pyiceberg.catalog.sql import SqlCatalog
+from pyspark.sql import SparkSession
 
 # https://kevinjqliu.substack.com/p/a-tour-of-iceberg-catalogs-with-pyiceberg
 # https://medium.com/@tglawless/getting-started-with-pyiceberg-a2fc1caffdab
 # https://stackoverflow.com/questions/78933802/how-to-create-a-partitioned-table-in-python-using-pyiceberg-with-pyarrow
+
+
+def get_spark_session(catalog_name, catalog_path: str, warehouse_path: str):
+    return (
+        SparkSession.builder.appName("IcebergLocalDevelopment")
+        .config(
+            "spark.jars.packages",
+            "org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,org.xerial:sqlite-jdbc:3.34.0",
+        )
+        .config(
+            "spark.sql.extensions",
+            "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
+        )
+        .config(
+            "spark.sql.catalog.spark_catalog",
+            "org.apache.iceberg.spark.SparkSessionCatalog",
+        )
+        .config("spark.sql.catalog.spark_catalog.type", "hive")
+        .config(
+            f"spark.sql.catalog.{catalog_name}", "org.apache.iceberg.spark.SparkCatalog"
+        )
+        .config(f"spark.sql.catalog.{catalog_name}.type", "jdbc")
+        .config(f"spark.sql.catalog.{catalog_name}.uri", f"jdbc:sqlite:{catalog_path}")
+        .config(f"spark.sql.catalog.{catalog_name}.warehouse", warehouse_path)
+        .getOrCreate()
+    )
+
+
+def clean_up(catalog_path: str, warehouse_path: str):
+    if os.path.exists(catalog_path):
+        os.remove(catalog_path)
+    shutil.rmtree(warehouse_path, ignore_errors=True)
+
+
+def get_catalog(name: str, warehouse_path: str, catalog_path: str):
+    return SqlCatalog(
+        name,
+        **{
+            "uri": f"sqlite:///{catalog_path}",
+            "warehouse": f"file://{warehouse_path}",
+        },
+    )
 
 
 def create_catalog(

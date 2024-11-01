@@ -4,6 +4,7 @@ import string
 from datetime import date, timedelta
 
 import daft
+from daft.runners import pyrunner
 import pandas as pd
 import pyarrow as pa
 from pyiceberg.partitioning import PartitionSpec, PartitionField
@@ -13,9 +14,13 @@ from pyiceberg.table.name_mapping import NameMapping, MappedField
 
 from utils_iceberg import create_catalog
 
+import logging
+
+logging.getLogger().setLevel(logging.DEBUG)
+
 ## create catalog and namespace
 catalog = create_catalog(
-    warehouse_path=os.getcwd(), filename="pyiceberg_catalog", recreate=True
+    warehouse_path=os.getcwd(), filename="iceberg_catalog", recreate=True
 )
 namespace_name = "local"
 table_name = "demo"
@@ -51,21 +56,39 @@ partition_spec = PartitionSpec(
     )
 )
 
-iceberg_table = catalog.create_table_if_not_exists(
-    table_identifier, iceberg_schema, partition_spec=partition_spec
-)
 if catalog.table_exists(table_identifier):
     catalog.drop_table(table_identifier)
 
+iceberg_table = catalog.create_table_if_not_exists(
+    table_identifier, iceberg_schema, partition_spec=partition_spec
+)
+
 iceberg_table.append(arrow_df)
 
+
+# daft.context.set_runner_py(use_thread_pool=False)
 
 df = daft.read_iceberg(iceberg_table)
 df._builder.to_physical_plan_scheduler(daft.context.get_context().daft_execution_config)
 df.explain(show_all=True)
 
-df1 = df.where(df["val"] < 3)
+df1 = daft.read_iceberg(iceberg_table).where(df["val"] < 3)
 df1._builder.to_physical_plan_scheduler(
     daft.context.get_context().daft_execution_config
 )
+df1._builder.optimize().to_physical_plan_scheduler(
+    daft.context.get_context().daft_execution_config
+)
 df1.explain(show_all=True)
+
+df1.collect()
+
+builder = df1._builder
+runner = pyrunner.PyRunner(use_thread_pool=False)
+runner.run(builder)
+plan_scheduler = builder.to_physical_plan_scheduler(
+    daft.context.get_context().daft_execution_config
+)
+psets = {
+    k: v.values() for k, v in runner._part_set_cache.get_all_partition_sets().items()
+}
