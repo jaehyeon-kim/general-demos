@@ -42,8 +42,16 @@ spark.sql(f"SELECT * FROM {CATALOG_NAME}.demo.staging").show()
 spark.sql(f"""
   CREATE TABLE {CATALOG_NAME}.demo.sample
   USING iceberg
+  PARTITIONED BY (id, days(ts), category)
+  AS SELECT id, data, category, to_timestamp(ts) AS ts
+    FROM {CATALOG_NAME}.demo.staging""")
+
+spark.sql(f"""
+  CREATE TABLE {CATALOG_NAME}.demo.sample1
+  USING iceberg
   PARTITIONED BY (bucket(16, id), days(ts), category)
   AS SELECT id, data, category, to_timestamp(ts) AS ts
     FROM {CATALOG_NAME}.demo.staging""")
 
-spark.sql(f"SELECT * FROM {CATALOG_NAME}.demo.sample").show()
+df = spark.sql(f"""SELECT * FROM {CATALOG_NAME}.demo.sample1 WHERE id <= 3""")
+df.explain()
