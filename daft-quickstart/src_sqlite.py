@@ -20,6 +20,9 @@ df = daft.read_sql(
     num_partitions=7,
     schema=SCHEMA,
 )
+df._builder.optimize().to_physical_plan_scheduler(
+    daft.context.get_context().daft_execution_config
+)
 df.collect()
 df.to_pylist()
 df.iter_rows()

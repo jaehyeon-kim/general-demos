@@ -13,7 +13,7 @@ clean_up(CATALOG_PATH, WAREHOUSE_PATH)
 spark: SparkSession = get_spark_session(CATALOG_NAME, CATALOG_PATH, WAREHOUSE_PATH)
 
 # Verify Spark session creation
-spark.sql("SHOW DATABASES").show()
+# spark.sql("SHOW DATABASES").show()
 
 # Create and insert records to a staging table
 spark.sql(f"""
@@ -38,13 +38,27 @@ spark.sql(f"""
 
 spark.sql(f"SELECT * FROM {CATALOG_NAME}.demo.staging").show()
 
+spark.sql(f"DROP TABLE IF EXISTS {CATALOG_NAME}.demo.sample")
+
 # Create an iceberg table
 spark.sql(f"""
   CREATE TABLE {CATALOG_NAME}.demo.sample
   USING iceberg
   PARTITIONED BY (id, days(ts), category)
-  AS SELECT id, data, category, to_timestamp(ts) AS ts
+  AS SELECT id, data, category, to_timestamp_ltz(ts) AS ts
     FROM {CATALOG_NAME}.demo.staging""")
+
+spark.sql(f"SELECT * FROM {CATALOG_NAME}.demo.sample").show()
+
+spark.sql(f"""
+  SELECT * 
+  FROM {CATALOG_NAME}.demo.sample
+  WHERE id <= 3""").show()
+
+spark.sql(f"""
+  SELECT * 
+  FROM {CATALOG_NAME}.demo.sample
+  WHERE id <= 3 AND ts <= to_date('2024-01-01')""").show()
 
 spark.sql(f"""
   CREATE TABLE {CATALOG_NAME}.demo.sample1
@@ -54,4 +68,21 @@ spark.sql(f"""
     FROM {CATALOG_NAME}.demo.staging""")
 
 df = spark.sql(f"""SELECT * FROM {CATALOG_NAME}.demo.sample1 WHERE id <= 3""")
-df.explain()
+df.explain(True)
+
+df1 = spark.sql(f"""SELECT * FROM {CATALOG_NAME}.demo.sample1 WHERE id = 3""")
+df1.explain(True)
+
+spark.sql(f"""SELECT partition FROM {CATALOG_NAME}.demo.sample1.files""").collect()
+
+r = spark.sql(
+    f"""EXPLAIN EXTENDED SELECT * FROM {CATALOG_NAME}.demo.sample1 WHERE id <= 3"""
+).show(truncate=False)
+print(r[0].plan)
+
+spark.sql(f"DESCRIBE EXTENDED {CATALOG_NAME}.demo.sample1").show(100, truncate=False)
+
+r = spark.sql(
+    f"""EXPLAIN FORMATTED SELECT * FROM {CATALOG_NAME}.demo.sample1 WHERE id_bucket <= 3"""
+).collect()
+print(r[0].plan)
