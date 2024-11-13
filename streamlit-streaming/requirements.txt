@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+streamlit
+aiohttp
+google-cloud-pubsub
+kafka-python
