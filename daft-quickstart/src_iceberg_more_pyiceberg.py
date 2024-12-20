@@ -21,7 +21,7 @@ df._builder.optimize().to_physical_plan_scheduler(
 )
 df.collect()
 
-df1 = daft.read_iceberg(iceberg_table).where(col("id") <= 3)
+df1 = daft.read_iceberg(iceberg_table).where(col("id") == 1)
 df1._builder.optimize().to_physical_plan_scheduler(
     daft.context.get_context().daft_execution_config
 )
@@ -47,10 +47,17 @@ df1.show()
 df1.explain(show_all=True)
 
 ##
-df2 = daft.read_iceberg(iceberg_table1).where(col("id") == 3)
+iceberg_table1 = catalog.load_table("demo.sample1")
+df2 = daft.read_iceberg(iceberg_table1).where(col("id") == 1)
 df2._builder.optimize().to_physical_plan_scheduler(
     daft.context.get_context().daft_execution_config
 )
-df2.show()
+df2.select(col("id"), col("ts")).show()
 
 df2.explain(show_all=True)
+
+# for pf in pfiles:
+#     df = daft.read_parquet(pf).where(col("id") == 1)
+#     df = df.select(col('id'))
+#     for row in df.iter_rows():
+#         yield row

@@ -1,3 +1,4 @@
+import json
 import daft
 from daft import DataType
 from utils_db import create_sqlite, create_postgres
@@ -18,8 +19,25 @@ df = daft.read_sql(
     conn=lambda: conn_fn(db_name),
     partition_col="id",
     num_partitions=7,
-    schema=SCHEMA,
+    # schema=SCHEMA,
 )
+
+df = daft.from_pydict({"foo": [1, 2, 3], "bar": ["a", "b", "c"]})
+
+df.iter_rows()
+df.to_pylist()
+
+physical_plan_scheduler = df._builder.to_physical_plan_scheduler(
+    daft.context.get_context().daft_execution_config
+)
+physical_plan_dict = json.loads(physical_plan_scheduler.to_json_string())
+
+sql_queries = []
+for task in physical_plan_dict["TabularScan"]["scan_tasks"]:
+    sql_queries.append(task["file_format_config"]["Database"]["sql"])
+print(sql_queries)
+
+
 df._builder.optimize().to_physical_plan_scheduler(
     daft.context.get_context().daft_execution_config
 )
